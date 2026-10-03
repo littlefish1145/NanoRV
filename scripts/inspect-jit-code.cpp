@@ -32,9 +32,15 @@ int main(int argc,char** argv) {
   try {
     if(argc!=2) {std::cerr<<"Usage: rvvm_jit_inspect OUTPUT_DIRECTORY\n";return 1;}
     const std::filesystem::path directory=argv[1];std::filesystem::create_directories(directory);
-    for(const std::string name:{"three-operand-add","three-operand-bitwise","memory","self-loop-fusible","register-pressure"}) {
+    for(const std::string name:{"three-operand-add","three-operand-bitwise","memory","store","self-loop-fusible","register-pressure"}) {
       std::vector<cpu::CachedInstruction> instructions;
-      if(name=="self-loop-fusible") {
+      if(name=="store") {
+        for(unsigned n=0;n<16;++n) {
+          const u32 first=(2u<<20)|(1u<<15)|(2u<<12)|0x23;
+          const u32 second=op_i(8,1,0,1);
+          for(const auto raw:{first,second})instructions.push_back({cpu::decode(raw),raw});
+        }
+      } else if(name=="self-loop-fusible") {
         for(unsigned n=0;n<30;++n) {const auto raw=op_i(1,1,0,1);instructions.push_back({cpu::decode(raw),raw});}
         for(const auto raw:{op_i(-1,30,0,30),branch(-124,30)})instructions.push_back({cpu::decode(raw),raw});
       } else if(name=="register-pressure") {

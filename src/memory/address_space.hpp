@@ -47,6 +47,33 @@ public:
     void set_concurrent(bool enabled) noexcept { concurrent_=enabled; }
     bool concurrent() const noexcept { return concurrent_; }
     u64 host_physical(const u8* ptr) const noexcept {return ram_base_+static_cast<u64>(ptr-ram_data_);}
+    // Native JIT fast-path field offsets. Computed from a real object of the
+    // same binary layout (cf. cpu::hart_offset); valid for every instance.
+    // code_pages_/code_summary_ are unique_ptr-held arrays: the member itself
+    // stores the bare array pointer (all major standard libraries), so the
+    // member offset is the array-pointer offset.
+    static std::size_t offset_ram_data() noexcept {
+        static const AddressSpace layout{};
+        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(&layout.ram_data_)-reinterpret_cast<std::uintptr_t>(&layout));
+    }
+    static std::size_t offset_ram_size() noexcept {
+        static const AddressSpace layout{};
+        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(&layout.ram_size_)-reinterpret_cast<std::uintptr_t>(&layout));
+    }
+    static std::size_t offset_code_pages() noexcept {
+        static_assert(sizeof(std::unique_ptr<std::atomic<u64>[]>)==sizeof(void*),"code page table must be a bare pointer");
+        static const AddressSpace layout{};
+        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(&layout.code_pages_)-reinterpret_cast<std::uintptr_t>(&layout));
+    }
+    static std::size_t offset_code_summary() noexcept {
+        static_assert(sizeof(std::unique_ptr<std::atomic<u64>[]>)==sizeof(void*),"code summary table must be a bare pointer");
+        static const AddressSpace layout{};
+        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(&layout.code_summary_)-reinterpret_cast<std::uintptr_t>(&layout));
+    }
+    static std::size_t offset_concurrent() noexcept {
+        static const AddressSpace layout{};
+        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(&layout.concurrent_)-reinterpret_cast<std::uintptr_t>(&layout));
+    }
     // Every concurrent RAM access uses the same aligned 64-bit atomic storage,
     // including subword CPU accesses, instruction fetch and device DMA.
     u64 read_host(const u8*,unsigned width) const noexcept;

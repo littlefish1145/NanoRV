@@ -281,6 +281,24 @@ struct Emitter {
     if(dest==source)return;
     b({static_cast<u8>(0x48|(source>=8?4:0)|(dest>=8?1:0)),0x89,static_cast<u8>(0xc0|((source&7)<<3)|(dest&7))});
   }
+  void shr_reg_imm8(unsigned host,u8 amount) { // shr r64,imm8 (/5)
+    b({static_cast<u8>(0x48|(host>=8?1:0)),0xc1,static_cast<u8>(0xe8|(host&7))});b({amount});
+  }
+  void cmp_reg_reg(unsigned first,unsigned second) { // cmp r/m64,r64: first is r/m, second is reg
+    b({static_cast<u8>(0x48|(second>=8?4:0)|(first>=8?1:0)),0x39,static_cast<u8>(0xc0|((second&7)<<3)|(first&7))});
+  }
+  void and_reg_imm8(unsigned host,u8 value) { // and r64,imm8 (/4)
+    b({static_cast<u8>(0x48|(host>=8?1:0)),0x83,static_cast<u8>(0xe0|(host&7))});b({value});
+  }
+  void bt_reg(unsigned base,unsigned index) { // bt r/m64,r64: base is r/m, index is reg
+    b({static_cast<u8>(0x48|(index>=8?4:0)|(base>=8?1:0)),0x0f,0xa3,static_cast<u8>(0xc0|((index&7)<<3)|(base&7))});
+  }
+  void test_byte_r12(u32 disp) { // test byte [r12+disp32],0 (F6 /0 with SIB base)
+    b({0x41,0xf6,0x84,0x24});d(disp);b({0x00});
+  }
+  void cmp_byte_r12(u32 disp) { // cmp byte [r12+disp32],0 (80 /7 with SIB base)
+    b({0x41,0x80,0xbc,0x24});d(disp);b({0x00});
+  }
   void load_stack(unsigned host,u8 offset) {
     b({static_cast<u8>(0x48|(host>=8?4:0)),0x8b,static_cast<u8>(0x44|((host&7)<<3)),0x24,offset});
   }
@@ -562,6 +580,55 @@ struct Emitter {
     else load(decoded.rs2);
     move_register(9,0);
     move_register(1,12);load_stack(2,kBusStack);
+    if(!floating) {
+      // Inline the common RAM store instead of calling native_store_ram: the
+      // address is validated, aligned and single-page, so the data write is one
+      // MOV. Slow cases rejoin the shared helper path via misses (which repeats
+      // the full write_fast/notify_write/note_store sequence exactly once; the
+      // inline MOV below is skipped there, so nothing runs twice).
+      // r8=host, r9=value, rdx=bus. rcx/rax/r10 are scratch here: the slow path
+      // reloads rcx/rdx and recomputes operands from Hart.
+      const unsigned width_bytes=1u<<(decoded.funct3&3);
+      move_register(0,8); // rax = host
+      b({0x48,0x2b,0x82});d(static_cast<u32>(memory::AddressSpace::offset_ram_data())); // sub rax,[rdx+ram_data]: offset
+      // A descriptor hit implies mapped RAM: code_pages_ is allocated with the
+      // RAM region, the offset is in range, and the tag mask already proved
+      // natural alignment (hence single-page). Only the code-mark check below
+      // can still divert to the slow path.
+      // code_summary_ bit for the start page; a marked page may hold code.
+      move_register(10,0); // r10 = offset
+      shr_reg_imm8(10,0x0c); // shr r10,12: start page
+      b({0x48,0x8b,0x8a});d(static_cast<u32>(memory::AddressSpace::offset_code_summary())); // mov rcx,[rdx+code_summary]
+      move_register(0,10); // rax = page
+      b({0x48,0xc1,0xe8,0x06}); // shr rax,6: summary index
+      b({0x48,0x8b,0x0c,0xc1}); // mov rcx,[rcx+rax*8]
+      and_reg_imm8(10,0x3f); // and r10,63: bit index
+      bt_reg(1,10); // bt rcx,r10
+      misses.push_back(conditional_jump(0x82)); // jc slow: possibly a code page
+      b({0x80,0xba});d(static_cast<u32>(memory::AddressSpace::offset_concurrent()));b({0x00}); // cmp byte [rdx+concurrent],0
+      misses.push_back(conditional_jump(0x85)); // jne slow: locked SMP path
+      // Own-hart reservation: a valid reservation diverts to the helper, which
+      // performs the write and notes (possibly clears) the reservation. With no
+      // other hart present there is nothing else to clear; SMP uses the slow
+      // locked path via concurrent_ above.
+      cmp_byte_r12(static_cast<u32>(hart_offset(&Hart::reservation_valid))); // cmp byte [r12+reservation_valid],0
+      misses.push_back(conditional_jump(0x85)); // jne slow: helper notes the store
+      switch(width_bytes) {
+      case 1:b({0x45,0x88,0x08});break; // mov [r8],r9b
+      case 2:b({0x66,0x45,0x89,0x08});break; // mov [r8],r9w
+      case 4:b({0x45,0x89,0x08});break; // mov [r8],r9d
+      default:b({0x4d,0x89,0x08});break; // mov [r8],r9
+      }
+      // Compensate the prefix helper metadata like inline loads do; the sampled
+      // counter test below is already runtime-gated, so no new config split.
+      b({0x41,0x80,0x7f,static_cast<u8>(offsetof(NativeChain,sampling)),0x00});const auto no_store_sample=conditional_jump(0x84);
+      b({0x49,0x83,0x6f,static_cast<u8>(offsetof(NativeChain,sampled_helpers)),0x01});
+      patch_jump(no_store_sample,bytes.size());
+      cached_rax=32;
+      return misses;
+    }
+    // Floating-point stores keep the helper call: the value lives in an FP
+    // register file slot (r8/r9/rcx/rdx above already hold host/value/hart/bus).
     const std::array<void(*)(Hart*,const memory::AddressSpace*,u8*,u64),4> stores{
       native_store_ram<8>,native_store_ram<16>,native_store_ram<32>,native_store_ram<64>};
     imm(reinterpret_cast<u64>(stores[decoded.funct3]));b({0xff,0xd0});cached_rax=32;

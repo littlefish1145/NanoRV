@@ -58,12 +58,14 @@ Machine::Machine(const MachineConfig& config) : config_(config), block_(memory_)
     memory_.add(0x101000,rtc_.size(),&rtc_,"rtc",mmio);
 
     harts_.resize(config_.hart_count);
+    if(harts_.size()>1) { // A single hart has no other hart to clear; per-store note_store covers its own reservation.
     memory_.set_write_observer(this,[](void* state,u64 address,u64 bytes) {
         for(auto& h:static_cast<Machine*>(state)->harts_) {
             if(h.reservation_valid && address<h.reservation_address+h.reservation_width/8 &&
                h.reservation_address<address+bytes)h.clear_reservation();
         }
     });
+    }
     u32 index = 0;
     for (auto& h : harts_) {
         h.reset(rvvm::kDramBase);
