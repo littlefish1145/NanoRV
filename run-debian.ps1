@@ -13,7 +13,7 @@ param(
     [string]$Append = 'console=ttyS0 earlycon=sbi root=/dev/vda1 rw loglevel=6 systemd.firstboot=no',
     [switch]$FullInitrd,
     [switch]$NoX11,
-    [string]$Binary = 'build/perf21/bin/Release/rvvm.exe'
+    [string]$Binary = 'build/perf22/bin/Release/rvvm.exe'
 )
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
@@ -21,8 +21,8 @@ $x11=$null
 try {
     $binaryPath = if ([IO.Path]::IsPathRooted($Binary)) { $Binary } else { Join-Path $PSScriptRoot $Binary }
     if (!(Test-Path -LiteralPath $binaryPath)) {
-        if ($Binary -ne 'build/perf19/bin/Release/rvvm.exe') { throw "Selected VM binary does not exist: $binaryPath" }
-        & ./scripts/build.ps1 -BuildDir build/perf19 -NoTests
+        if ($Binary -notmatch '^build[\\/]([^\\/]+)') { throw "Selected VM binary does not exist: $binaryPath" }
+        & ./scripts/build.ps1 -BuildDir (Join-Path 'build' $Matches[1]) -NoTests
     }
     if (!$FullInitrd -and !(Test-Path assets/debian-performance-initrd.cpio)) { & ./scripts/prepare-performance.ps1 }
     $initrd = if ($FullInitrd) { 'assets/debian-initrd.img' } else { 'assets/debian-performance-initrd.cpio' }
