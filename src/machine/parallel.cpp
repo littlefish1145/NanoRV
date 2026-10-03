@@ -109,7 +109,7 @@ RunResult Machine::run_parallel() {
             // covers shutdown and hosts lacking precise waitable timers.
             cpu_wake[index].wait_ms(10);continue;
           }
-          const u32 batch_limit=config_.engine==EngineKind::Jit?2048u:256u;
+          const u32 batch_limit=config_.engine==EngineKind::Jit?8192u:256u;
           u32 budget=batch_limit;
           if(config_.max_instructions) {
             auto available=remaining.load(std::memory_order_relaxed);

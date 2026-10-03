@@ -198,7 +198,7 @@ RunResult Machine::step(u32 hart_index) {
         }
     }
     if (config_.engine != EngineKind::Interpreter && !config_.trace) {
-        const u32 batch_limit=config_.engine==EngineKind::Jit?2048u:256u;
+        const u32 batch_limit=config_.engine==EngineKind::Jit?8192u:256u;
         u32 limit = batch_limit;
         if (config_.max_instructions) limit = static_cast<u32>(std::min<u64>(batch_limit,config_.max_instructions-run_instructions_));
         auto block = engine_.run_batch(hart,memory_,trap,limit,config_.engine==EngineKind::Jit);
