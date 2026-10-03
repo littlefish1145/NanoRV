@@ -115,7 +115,53 @@ u64 evaluate(const IRInstruction& i,u64 a,u64 b) {
 void optimize_ir(std::span<IRInstruction> instructions) {
   std::array<bool,32> known{};std::array<u64,32> values{};known[0]=true;
   for(auto& i:instructions) {
+    // Fold a conditional branch with two known operands, as QEMU does. A taken
+    // condition keeps its displacement; a never-taken one becomes a jump to the
+    // fallthrough so PC still advances exactly one instruction.
+    if(i.op==IROp::BranchCond && known[i.a] && known[i.b]) {
+      const u64 lhs=values[i.a],rhs=values[i.b];
+      const auto left=static_cast<i64>(lhs),right=static_cast<i64>(rhs);
+      bool taken=false;
+      switch(i.condition) {
+      case 0:taken=lhs==rhs;break;
+      case 1:taken=lhs!=rhs;break;
+      case 4:taken=left<right;break;
+      case 5:taken=left>=right;break;
+      case 6:taken=lhs<rhs;break;
+      default:taken=lhs>=rhs;break;
+      }
+      i.op=IROp::Branch;i.indirect=false;i.dst=0;i.a=0;i.b=0;
+      i.immediate=taken?i.immediate:static_cast<u64>(i.source->decoded.length);
+      continue;
+    }
     if(!pure_ir(i.op)) {known.fill(false);known[0]=true;continue;}
+    if(i.op!=IROp::Const&&i.dst&&i.op!=IROp::Move&&i.op!=IROp::Select) {
+      // QEMU folds algebraic identities before propagating values, so an
+      // operation with a neutral or annihilating right operand disappears even
+      // when the other operand is only known at run time. -O2 code emits
+      // several of these per function, mostly against x0.
+      u64 right=0;bool have=false;
+      if(i.immediate_rhs) {right=i.immediate;have=true;}
+      else if(known[i.b]) {right=values[i.b];have=true;}
+      if(have) {
+        const auto ones=i.word?0xffffffffull:~0ull;
+        const auto move=[&i] {i.op=IROp::Move;i.immediate_rhs=false;i.b=0;};
+        const auto constant=[&i](u64 value) {i.op=IROp::Const;i.immediate=value;i.immediate_rhs=false;i.b=0;};
+        // Word forms sign-extend their result and Move is emitted as a plain
+        // register copy, so only constant results may fold when i.word is set.
+        const auto identity=[&] {if(!i.word)move();};
+        if(right==0) switch(i.op) {
+        case IROp::Add:case IROp::Sub:case IROp::Xor:case IROp::Or:
+        case IROp::Shl:case IROp::Shr:case IROp::Sar:identity();break;
+        case IROp::And:case IROp::Mul:constant(0);break;
+        default:break;
+        } else if(i.op==IROp::Mul&&right==1) identity();
+        else if(right==ones&&!i.word) {
+          if(i.op==IROp::And)move();
+          else if(i.op==IROp::Or)constant(ones);
+        }
+      }
+    }
     if(i.op==IROp::Const) {if(i.dst) {known[i.dst]=true;values[i.dst]=i.immediate;}continue;}
     if(i.op!=IROp::PCRelative && i.op!=IROp::Nop && i.op!=IROp::Select && known[i.a] && (i.op==IROp::Move || i.immediate_rhs || known[i.b])) {
       i.immediate=evaluate(i,values[i.a],i.immediate_rhs?i.immediate:values[i.b]);i.op=IROp::Const;

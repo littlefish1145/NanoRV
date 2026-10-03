@@ -608,6 +608,50 @@ TEST(jit, ir_fuses_updates_without_losing_retired_instruction_slots) {
   CpuFixture c;c.hart.set_reg(1,~0ull);auto native=cpu::NativeBlock::compile(source);CHECK(native);
   CHECK_EQ(native->run(c.hart,c.space,c.trap),8u);CHECK_EQ(c.hart.pc,kDramBase+32);CHECK_EQ(c.hart.retired,8ull);CHECK_EQ(c.hart.get_reg(1),35ull);
 }
+TEST(jit, constant_branches_and_algebraic_identities_are_folded_like_qemu) {
+  // beq x0,x0 keeps its taken displacement; bne x0,x0 folds to a jump by one
+  // instruction length. Both update PC exactly like the reference executor.
+  for(const u32 condition:{0u,1u}) {
+    const u32 branch=enc::opcode_b(12,0,0,condition);
+    const std::array<cpu::CachedInstruction,2> source{{
+      {cpu::decode(enc::addi(1,1,1)),enc::addi(1,1,1)},{cpu::decode(branch),branch}}};
+    auto ir=cpu::lower_ir(source);cpu::optimize_ir(ir);
+    CHECK(ir[1].op==cpu::IROp::Branch);
+    CHECK(ir[1].dst==0u);CHECK(!ir[1].indirect);
+    CHECK_EQ(ir[1].immediate,condition?4ull:12ull);
+    CpuFixture c;c.hart.set_reg(1,7);auto native=cpu::NativeBlock::compile(source);CHECK(native);
+    CHECK_EQ(native->run(c.hart,c.space,c.trap),2u);
+    CHECK_EQ(c.hart.pc,kDramBase+(condition?8:16));CHECK_EQ(c.hart.get_reg(1),8ull);
+  }
+  // Neutral and annihilating right operands become moves or constants. Word
+  // forms sign-extend and must stay arithmetic instead of folding to a plain
+  // Move, which the emitter would emit without the sign-extension.
+  {
+    const std::array<u32,9> words{enc::addi(1,0,1),enc::addi(2,0,-1),enc::add(4,3,0),
+      enc::slli(5,3,0),enc::mul(6,3,1),enc::mul(7,3,0),enc::and_(8,3,2),enc::or_(9,3,2),
+      enc::addi32(10,3,0)};
+    std::vector<cpu::CachedInstruction> source;
+    for(const auto word:words)source.push_back({cpu::decode(word),word});
+    auto ir=cpu::lower_ir(source);cpu::optimize_ir(ir);
+    CHECK(ir[0].op==cpu::IROp::Const);CHECK_EQ(ir[0].immediate,1ull);
+    CHECK(ir[1].op==cpu::IROp::Const);CHECK_EQ(ir[1].immediate,~0ull);
+    CHECK(ir[2].op==cpu::IROp::Move);
+    CHECK(ir[3].op==cpu::IROp::Move);
+    CHECK(ir[4].op==cpu::IROp::Move);
+    CHECK(ir[5].op==cpu::IROp::Const);CHECK_EQ(ir[5].immediate,0ull);
+    CHECK(ir[6].op==cpu::IROp::Move);
+    CHECK(ir[7].op==cpu::IROp::Const);CHECK_EQ(ir[7].immediate,~0ull);
+    CHECK(ir[8].op==cpu::IROp::Add);CHECK(ir[8].word);
+    CpuFixture ref,fast;for(auto* c:{&ref,&fast})c->hart.set_reg(3,0x180000000ull);
+    for(const auto& i:source) {ref.hart.next_pc=ref.hart.pc+i.decoded.length;
+      CHECK(cpu::execute(ref.hart,ref.space,i.decoded,ref.trap));ref.hart.pc=ref.hart.next_pc;}
+    auto native=cpu::NativeBlock::compile(source);CHECK(native);
+    CHECK_EQ(native->run(fast.hart,fast.space,fast.trap),9u);
+    CHECK_EQ(ref.hart.get_reg(10),0xffffffff80000000ull);
+    for(unsigned r=0;r<32;++r)CHECK_EQ(ref.hart.get_reg(r),fast.hart.get_reg(r));
+    CHECK_EQ(ref.hart.pc,fast.hart.pc);CHECK_EQ(ref.hart.retired,fast.hart.retired);
+  }
+}
 TEST(jit, fused_nops_preserve_the_live_input_definition) {
   for(u32 opcode:{0x13u,0x1bu})for(u32 funct:{0u,4u,6u,7u}) {
     if(opcode==0x1b && funct!=0)continue;
