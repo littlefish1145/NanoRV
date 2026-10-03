@@ -1,0 +1,46 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "23"
+      }
+    },
+    {
+      "name": "msvc",
+      "displayName": "MSVC (cl) x64",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
+      "name": "clang-cl",
+      "displayName": "clang-cl x64",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "msvc-debug",   "configurePreset": "msvc",     "configuration": "Debug" },
+    { "name": "msvc-release", "configurePreset": "msvc",     "configuration": "Release" },
+    { "name": "msvc-relwithdebinfo", "configurePreset": "msvc", "configuration": "RelWithDebInfo" },
+    { "name": "clangcl-debug",   "configurePreset": "clang-cl", "configuration": "Debug" },
+    { "name": "clangcl-release", "configurePreset": "clang-cl", "configuration": "Release" },
+    { "name": "clangcl-relwithdebinfo", "configurePreset": "clang-cl", "configuration": "RelWithDebInfo" }
+  ],
+  "testPresets": [
+    { "name": "msvc-release",   "configurePreset": "msvc",     "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "clangcl-release", "configurePreset": "clang-cl", "configuration": "Release", "output": { "outputOnFailure": true } }
+  ]
+}

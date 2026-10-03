@@ -1,0 +1,83 @@
+﻿├── core
+│   ├── elf_loader.cpp
+│   ├── elf_loader.hpp
+│   ├── log.cpp
+│   ├── log.hpp
+│   ├── types.hpp
+├── cpu
+│   ├── block_engine.cpp
+│   ├── block_engine.hpp
+│   ├── compressed.cpp
+│   ├── compressed.hpp
+│   ├── csr.cpp
+│   ├── csr.hpp
+│   ├── decoder.cpp
+│   ├── decoder.hpp
+│   ├── disassembler.cpp
+│   ├── disassembler.hpp
+│   ├── exec_util.hpp
+│   ├── execute.cpp
+│   ├── execute.hpp
+│   ├── execute_atomic.cpp
+│   ├── execute_atomic.hpp
+│   ├── execute_bitmanip.cpp
+│   ├── execute_bitmanip.hpp
+│   ├── execute_csr.cpp
+│   ├── execute_csr.hpp
+│   ├── execute_fp.cpp
+│   ├── execute_fp.hpp
+│   ├── execute_muldiv.cpp
+│   ├── execute_muldiv.hpp
+│   ├── hart.hpp
+│   ├── host_fp.cpp
+│   ├── host_fp.hpp
+│   ├── jit_x64.cpp
+│   ├── jit_x64.hpp
+│   ├── privilege.hpp
+│   ├── privileged.cpp
+│   ├── privileged.hpp
+│   ├── softint.hpp
+│   ├── trap.cpp
+│   ├── trap.hpp
+├── debug
+│   ├── register_dump.cpp
+│   ├── register_dump.hpp
+│   ├── trace.cpp
+│   ├── trace.hpp
+├── devices
+│   ├── virt_devices.cpp
+│   ├── virt_devices.hpp
+│   ├── virtio.cpp
+│   ├── virtio.hpp
+│   ├── virtio_graphics.cpp
+│   ├── virtio_graphics.hpp
+├── machine
+│   ├── fdt.cpp
+│   ├── fdt.hpp
+│   ├── machine.cpp
+│   ├── machine.hpp
+│   ├── machine_config.cpp
+│   ├── machine_config.hpp
+├── memory
+│   ├── address_space.cpp
+│   ├── address_space.hpp
+│   ├── memory_region.hpp
+│   ├── ram_region.cpp
+│   ├── ram_region.hpp
+├── mmu
+│   ├── mmu.cpp
+│   ├── mmu.hpp
+├── platform
+│   ├── windows
+│   │   ├── windows_disk.cpp
+│   │   ├── windows_display.cpp
+│   │   ├── windows_network.cpp
+│   │   ├── windows_platform.cpp
+│   │   ├── windows_renderer.cpp
+│   ├── disk.hpp
+│   ├── display.hpp
+│   ├── network.hpp
+│   ├── platform.hpp
+│   ├── renderer.hpp
+├── main.cpp
+├── tree.txt
