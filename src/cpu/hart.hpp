@@ -7,7 +7,7 @@
 #include "cpu/csr.hpp"
 #include "cpu/privilege.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 // Architectural register numbers that carry special meaning.
 enum : u32 {
@@ -189,4 +189,4 @@ inline void Hart::note_load(u64, unsigned) noexcept {
     // stores (and stage 9's cross-hart rules) do.
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

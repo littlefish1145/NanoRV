@@ -3,7 +3,7 @@
 #include "platform/platform.hpp"
 #include <windows.h>
 #include <algorithm>
-namespace rvvm::platform {
+namespace nanorv::platform {
 struct DiskFile::Impl {
   HANDLE file=INVALID_HANDLE_VALUE;
   std::uint64_t bytes=0;

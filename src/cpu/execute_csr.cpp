@@ -5,7 +5,7 @@
 #include "cpu/csr.hpp"
 #include "cpu/exec_util.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 enum class CsrOp : u8 {
@@ -108,4 +108,4 @@ const char* csr_mnemonic(const Decoded& insn) noexcept {
     return base;
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

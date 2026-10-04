@@ -6,7 +6,7 @@
 #include "core/log.hpp"
 #include <atomic>
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 using detail::illegal_insn;
@@ -233,4 +233,4 @@ const char* atomic_mnemonic(const Decoded& insn) noexcept {
     return amo_name(insn.funct7 >> 2, /*word=*/insn.funct3 == 2);
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

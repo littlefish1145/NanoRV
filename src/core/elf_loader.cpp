@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <span>
 
-namespace rvvm::core {
+namespace nanorv::core {
 namespace {
 
 // ELF constants (generic + RISC-V specific). Kept local so that no <elf.h> is
@@ -115,7 +115,7 @@ LoadResult load_elf(memory::AddressSpace& memory, const std::vector<std::uint8_t
         header.align = read_u64(ph + 48);
 
         if (header.type != kPtLoad) {
-            RVVM_DEBUG("elf: skipping program header %u of type %u", i, header.type);
+            NanoRV_DEBUG("elf: skipping program header %u of type %u", i, header.type);
             continue;
         }
         if (header.memsz == 0) {
@@ -154,7 +154,7 @@ LoadResult load_elf(memory::AddressSpace& memory, const std::vector<std::uint8_t
             return R("failed to zero the .bss tail of ELF segment " + std::to_string(i));
         }
 
-        RVVM_DEBUG("elf: segment %u paddr=0x%llx vaddr=0x%llx filesz=0x%llx memsz=0x%llx flags=0x%x", i,
+        NanoRV_DEBUG("elf: segment %u paddr=0x%llx vaddr=0x%llx filesz=0x%llx memsz=0x%llx flags=0x%x", i,
                    static_cast<unsigned long long>(physical),
                    static_cast<unsigned long long>(header.vaddr),
                    static_cast<unsigned long long>(header.filesz),
@@ -202,4 +202,4 @@ LoadResult load_raw(memory::AddressSpace& memory, const std::vector<std::uint8_t
     return result;
 }
 
-} // namespace rvvm::core
+} // namespace nanorv::core

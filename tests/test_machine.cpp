@@ -8,7 +8,7 @@
 #include <vector>
 #include <thread>
 
-using namespace rvvm;
+using namespace nanorv;
 
 TEST(platform, wake_event_retains_and_consumes_notification) {
     platform::WakeEvent event;
@@ -36,7 +36,7 @@ std::filesystem::path scratch_path(const char* name) {
     if (error) {
         directory = std::filesystem::current_path();
     }
-    return directory / (std::string("rvvm_test_") + name);
+    return directory / (std::string("nanorv_test_") + name);
 }
 
 void put16(std::vector<std::uint8_t>& image, std::size_t offset, u16 value) {
@@ -185,7 +185,7 @@ TEST(machine, entry_override_is_applied) {
 }
 
 TEST(machine_config, parses_the_command_line) {
-    const char* argv[] = {"rvvm", "run", "program.elf", "-m", "512M", "-d", "--max-steps", "1000"};
+    const char* argv[] = {"nanorv", "run", "program.elf", "-m", "512M", "-d", "--max-steps", "1000"};
     const auto parsed = machine::parse_command_line(8, argv);
     CHECK(parsed.has_value());
     CHECK_EQ(parsed->image_path, std::string("program.elf"));
@@ -196,71 +196,71 @@ TEST(machine_config, parses_the_command_line) {
 }
 
 TEST(machine_config, loopback_forward_requires_valid_unique_ports_and_network) {
-    const char* valid[]={"rvvm","--kernel","assets/linux","--net","user","--forward","46001:46000"};
+    const char* valid[]={"nanorv","--kernel","assets/linux","--net","user","--forward","46001:46000"};
     auto config=machine::parse_command_line(static_cast<int>(std::size(valid)),valid);
     CHECK(config.has_value());CHECK_EQ(config->port_forwards.size(),1ull);
     CHECK_EQ(config->port_forwards[0].host,46001u);CHECK_EQ(config->port_forwards[0].guest,46000u);
     for(const char* value:{"0:22","22:0","65536:22","22:65536","abc:22","22:3:4","22"}) {
-        const char* invalid[]={"rvvm","program.elf","--net","user","--forward",value};
+        const char* invalid[]={"nanorv","program.elf","--net","user","--forward",value};
         CHECK(!machine::parse_command_line(static_cast<int>(std::size(invalid)),invalid));
     }
-    const char* missing[]={"rvvm","program.elf","--forward","46001:22"};
+    const char* missing[]={"nanorv","program.elf","--forward","46001:22"};
     CHECK(!machine::parse_command_line(static_cast<int>(std::size(missing)),missing));
-    const char* duplicate[]={"rvvm","program.elf","--net","user","--forward","46001:22","--forward","46001:80"};
+    const char* duplicate[]={"nanorv","program.elf","--net","user","--forward","46001:22","--forward","46001:80"};
     CHECK(!machine::parse_command_line(static_cast<int>(std::size(duplicate)),duplicate));
 }
 
 TEST(machine_config, rejects_unimplemented_and_invalid_options) {
     {
-        const char* argv[] = {"rvvm", "run", "program.elf", "--engine", "jit"};
+        const char* argv[] = {"nanorv", "run", "program.elf", "--engine", "jit"};
         const auto parsed = machine::parse_command_line(5, argv);
         CHECK(parsed.has_value());
         CHECK(parsed->engine == machine::EngineKind::Jit);
     }
     {
-        const char* argv[] = {"rvvm", "run", "program.elf", "--engine", "block"};
+        const char* argv[] = {"nanorv", "run", "program.elf", "--engine", "block"};
         const auto parsed = machine::parse_command_line(5, argv);
         CHECK(parsed.has_value());
         CHECK(parsed->engine == machine::EngineKind::Block);
     }
     {
-        const char* argv[] = {"rvvm", "run", "program.elf", "-smp", "4"};
+        const char* argv[] = {"nanorv", "run", "program.elf", "-smp", "4"};
         const auto parsed = machine::parse_command_line(5, argv);
         CHECK(parsed.has_value());
         CHECK_EQ(parsed->hart_count,4u);
     }
     {
-        const char* argv[] = {"rvvm", "run", "program.elf", "--nonsense"};
+        const char* argv[] = {"nanorv", "run", "program.elf", "--nonsense"};
         const auto parsed = machine::parse_command_line(5, argv);
         CHECK(!parsed.has_value());
         CHECK(parsed.error().find("unknown option") != std::string::npos);
     }
     {
-        const char* argv[] = {"rvvm", "run"};
+        const char* argv[] = {"nanorv", "run"};
         const auto parsed = machine::parse_command_line(2, argv);
         CHECK(!parsed.has_value());
         CHECK(parsed.error().find("no image") != std::string::npos);
     }
     {
-        const char* argv[] = {"rvvm", "run", "a.elf", "b.elf"};
+        const char* argv[] = {"nanorv", "run", "a.elf", "b.elf"};
         const auto parsed = machine::parse_command_line(5, argv);
         CHECK(!parsed.has_value());
         CHECK(parsed.error().find("more than one image") != std::string::npos);
     }
     {
-        const char* argv[] = {"rvvm", "run", "a.elf", "-m", "notanumber"};
+        const char* argv[] = {"nanorv", "run", "a.elf", "-m", "notanumber"};
         const auto parsed = machine::parse_command_line(5, argv);
         CHECK(!parsed.has_value());
     }
 }
 
 TEST(machine_config, accepts_the_documented_forms) {
-    const char* help[] = {"rvvm", "--help"};
+    const char* help[] = {"nanorv", "--help"};
     const auto help_config = machine::parse_command_line(2, help);
     CHECK(help_config.has_value());
     CHECK(help_config->show_help);
 
-    const char* raw[] = {"rvvm", "run", "flat.bin", "--raw", "--load-addr", "0x80000000", "--entry",
+    const char* raw[] = {"nanorv", "run", "flat.bin", "--raw", "--load-addr", "0x80000000", "--entry",
                          "0x80000100"};
     const auto parsed = machine::parse_command_line(8, raw);
     CHECK(parsed.has_value());
@@ -268,7 +268,7 @@ TEST(machine_config, accepts_the_documented_forms) {
     CHECK_EQ(parsed->raw_load_address, kDramBase);
     CHECK_EQ(*parsed->entry_override, kDramBase + 0x100);
 
-    const char* no_subcommand[] = {"rvvm", "kernel.elf"};
+    const char* no_subcommand[] = {"nanorv", "kernel.elf"};
     const auto parsed2 = machine::parse_command_line(2, no_subcommand);
     CHECK(parsed2.has_value());
     CHECK_EQ(parsed2->image_path, std::string("kernel.elf"));
@@ -294,13 +294,13 @@ TEST(machine, linux_syscon_reboot_reloads_firmware_and_resets_devices) {
     std::error_code ignored;std::filesystem::remove(firmware,ignored);std::filesystem::remove(kernel,ignored);
 }
 TEST(machine_config, host_vulkan_diagnostics_and_strict_presentation_options) {
-  const char* info[]{"rvvm","--host-vulkan-info","--host-vulkan-test","--host-gpu","nvidia"};
+  const char* info[]{"nanorv","--host-vulkan-info","--host-vulkan-test","--host-gpu","nvidia"};
   auto parsed=machine::parse_command_line(5,info);CHECK(parsed);
   CHECK(parsed->host_vulkan_info && parsed->host_vulkan_test);CHECK(parsed->host_gpu==platform::HostGpu::Nvidia);
-  const char* window[]{"rvvm","program.bin","--display","window","--display-backend","vulkan","--host-gpu","intel"};
+  const char* window[]{"nanorv","program.bin","--display","window","--display-backend","vulkan","--host-gpu","intel"};
   parsed=machine::parse_command_line(8,window);CHECK(parsed);CHECK(parsed->display_backend==platform::DisplayBackend::Vulkan);
-  const char* headless[]{"rvvm","program.bin","--display","headless","--display-backend","vulkan"};
+  const char* headless[]{"nanorv","program.bin","--display","headless","--display-backend","vulkan"};
   CHECK(!machine::parse_command_line(6,headless));
-  const char* invalid[]{"rvvm","--host-vulkan-info","--host-gpu","software"};
+  const char* invalid[]{"nanorv","--host-vulkan-info","--host-gpu","software"};
   CHECK(!machine::parse_command_line(4,invalid));
 }

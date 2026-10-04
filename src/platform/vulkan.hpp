@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace rvvm::platform {
+namespace nanorv::platform {
 enum class HostGpu { Auto, Nvidia, Intel, Amd };
 struct VulkanDevice {
   std::string name;

@@ -16,7 +16,7 @@
 #include <string_view>
 #include <vector>
 
-namespace rvvm::platform {
+namespace nanorv::platform {
 
 // Page protection requested from the host OS.
 enum class Protect : std::uint32_t {
@@ -107,4 +107,4 @@ std::uint32_t host_cpu_count() noexcept;
 // Last platform level error description for the calling thread.
 std::string last_error();
 
-} // namespace rvvm::platform
+} // namespace nanorv::platform

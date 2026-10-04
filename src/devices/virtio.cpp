@@ -6,11 +6,11 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-namespace rvvm::devices {
+namespace nanorv::devices {
 VirtioMmio::VirtioMmio(memory::AddressSpace& bus, u32 id, unsigned queues, u64 features)
   : bus_(bus), id_(id), queue_count_(queues), features_(features | (1ull << 32)) {}
 void VirtioMmio::fail() {
-  if (!(status_ & 64)) RVVM_WARN("VirtIO device %u: invalid queue or DMA; device requires reset",id_);
+  if (!(status_ & 64)) NanoRV_WARN("VirtIO device %u: invalid queue or DMA; device requires reset",id_);
   status_ |= 64; interrupt_status_ |= 2;
 }
 bool VirtioMmio::load(u64 o, unsigned w, u64& v) noexcept {
@@ -230,7 +230,7 @@ void VirtioBlock::notify(unsigned index) {
     } else if (type == 4) {
       // Ordered with preceding writes on the same FIFO worker.
     } else if (type == 8) {
-      constexpr char id[] = "RVVM native disk";
+      constexpr char id[] = "NanoRV native disk";
       if (chain.size() < 3 || !(chain[1].flags & 2)) request.status = 1;
       else {
         request.data.resize(std::min<u32>(chain[1].length,20));
@@ -369,4 +369,4 @@ void VirtioNet::deliver() {
     complete(0, head, static_cast<u32>(done));
   }
 }
-} // namespace rvvm::devices
+} // namespace nanorv::devices

@@ -41,21 +41,24 @@ def app_command(name,args):
 class Broker:
     def __init__(self,session):
         self.session=session
-        self.user=pwd.getpwnam('rvvm')
+        self.user=pwd.getpwnam('nanorv')
         self.children={};self.lock=threading.Lock()
-        directory=pathlib.Path('/run/rvvm-desktop');directory.mkdir(mode=0o750,exist_ok=True)
+        directory=pathlib.Path('/run/nanorv-desktop');directory.mkdir(mode=0o750,exist_ok=True)
         os.chown(directory,0,self.user.pw_gid)
         directory.chmod(0o750) # service UMask=0077 must not block the GUI user's xauth.
-        auth=directory/'Xauthority'
-        fields=(b'',str(session['display_number']).encode(),b'MIT-MAGIC-COOKIE-1',bytes.fromhex(session['cookie']))
-        auth.write_bytes(struct.pack('>H',65535)+b''.join(struct.pack('>H',len(f))+f for f in fields))
-        os.chown(auth,0,self.user.pw_gid);auth.chmod(0o640)
         runtime=pathlib.Path(f'/run/user/{self.user.pw_uid}')
         runtime.mkdir(mode=0o700,parents=True,exist_ok=True);os.chown(runtime,self.user.pw_uid,self.user.pw_gid)
-        self.environment=dict(os.environ,HOME=self.user.pw_dir,USER='rvvm',LOGNAME='rvvm',
-            DISPLAY=f"10.0.2.2:{session['display_number']}",XAUTHORITY=str(auth),XDG_RUNTIME_DIR=str(runtime),
+        self.environment=dict(os.environ,HOME=self.user.pw_dir,USER='nanorv',LOGNAME='nanorv',
+            DISPLAY=f"10.0.2.2:{session['display_number']}",XDG_RUNTIME_DIR=str(runtime),
             GDK_BACKEND='x11',QT_QPA_PLATFORM='xcb',QT_X11_NO_MITSHM='1')
         self.environment.pop('DBUS_SESSION_BUS_ADDRESS',None)
+        # x410 serves :0 over TCP without authentication, so the cookie is optional.
+        if session.get('cookie'):
+            auth=directory/'Xauthority'
+            fields=(b'',str(session['display_number']).encode(),b'MIT-MAGIC-COOKIE-1',bytes.fromhex(session['cookie']))
+            auth.write_bytes(struct.pack('>H',65535)+b''.join(struct.pack('>H',len(f))+f for f in fields))
+            os.chown(auth,0,self.user.pw_gid);auth.chmod(0o640)
+            self.environment['XAUTHORITY']=str(auth)
     def launch(self,name,args):
         command=app_command(name,args)
         with self.lock:
@@ -64,7 +67,7 @@ class Broker:
                 for pid in list(self.children):
                     if self.children[pid].poll() is not None:del self.children[pid]
                     if len(self.children)<256:break
-            log=open('/var/log/rvvm-desktop-apps.log','ab',buffering=0)
+            log=open('/var/log/nanorv-desktop-apps.log','ab',buffering=0)
             try:
                 process=subprocess.Popen(['/usr/bin/dbus-run-session','--']+command,
                     cwd=self.user.pw_dir,env=self.environment,user=self.user.pw_uid,group=self.user.pw_gid,
@@ -87,10 +90,10 @@ class Handler(BaseHTTPRequestHandler):
         return True
     def do_GET(self):
         if not self.authorized():return
-        if self.path=='/health':self.reply(200,{'ready':True,'protocol':1,'user':'rvvm'})
+        if self.path=='/health':self.reply(200,{'ready':True,'protocol':1,'user':'nanorv'})
         elif self.path=='/apps':self.reply(200,[{'id':a['id'],'name':a['name']} for a in applications().values()])
         elif self.path=='/logs':
-            file=pathlib.Path('/var/log/rvvm-desktop-apps.log')
+            file=pathlib.Path('/var/log/nanorv-desktop-apps.log')
             if file.exists():
                 with file.open('rb') as stream:
                     stream.seek(max(0,file.stat().st_size-16384));self.reply(200,{'text':stream.read().decode(errors='replace')})
@@ -122,7 +125,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__=='__main__':
     session=json.loads(pathlib.Path(sys.argv[1]).read_text())
-    if len(session['token'])!=64 or len(session['cookie'])!=32:raise ValueError('invalid session credentials')
-    bytes.fromhex(session['token']);bytes.fromhex(session['cookie'])
+    if len(session['token'])!=64 or (cookie:=session.get('cookie','')) and len(cookie)!=32:raise ValueError('invalid session credentials')
+    bytes.fromhex(session['token']);bytes.fromhex(cookie) if cookie else None
     Handler.broker=Broker(session)
     ThreadingHTTPServer(('0.0.0.0',46000),Handler).serve_forever()

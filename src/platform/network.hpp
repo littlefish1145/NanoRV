@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <functional>
-namespace rvvm::platform {
+namespace nanorv::platform {
 struct PortForward {std::uint16_t host=0,guest=0;};
 class NatNetwork {
 public:

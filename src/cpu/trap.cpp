@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "cpu/trap.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 const char* to_string(TrapCause cause) noexcept {
     switch (cause) {
@@ -23,4 +23,4 @@ const char* to_string(TrapCause cause) noexcept {
     return "unknown cause";
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

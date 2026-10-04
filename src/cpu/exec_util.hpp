@@ -8,7 +8,7 @@
 #include "cpu/trap.hpp"
 #include "mmu/mmu.hpp"
 
-namespace rvvm::cpu::detail {
+namespace nanorv::cpu::detail {
 
 constexpr u32 bits(u32 value, unsigned hi, unsigned lo) noexcept {
     return (value >> lo) & ((1u << (hi - lo + 1)) - 1u);
@@ -57,4 +57,4 @@ inline bool check_natural_alignment(u64 address, unsigned width_bits, bool is_lo
     return false;
 }
 
-} // namespace rvvm::cpu::detail
+} // namespace nanorv::cpu::detail

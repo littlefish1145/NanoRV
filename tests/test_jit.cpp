@@ -6,8 +6,8 @@
 #include "cpu/ir.hpp"
 #include "platform/platform.hpp"
 #include "mmu/mmu.hpp"
-using namespace rvvm;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::test;
 static_assert(offsetof(cpu::NativeChain,sampled_loads)<=127); // Generated disp8 ABI.
 TEST(jit, packed_code_pages_keep_other_blocks_alive_after_eviction) {
   const std::array<u32,3> words{enc::addi(1,1,7),enc::addi(1,1,13),enc::addi(1,1,19)};

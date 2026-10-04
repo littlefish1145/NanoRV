@@ -1,45 +1,39 @@
-# Authenticated X11 transport for the serial Debian VM. Called at launch only.
-function Start-RvvmX11([string]$Root) {
-    $serverPath=Join-Path $Root 'third_party/vcxsrv/vcxsrv.exe'
-    if (!(Test-Path -LiteralPath $serverPath)) {
-        & python (Join-Path $Root 'scripts/download-desktop-runtime.py')
-        if ($LASTEXITCODE) {throw 'X11 server preparation failed'}
+# X11 transport for the serial Debian VM, provided by the installed x410 server.
+# x410 serves display :0 over TCP and does not require an X cookie, so the guest
+# only needs DISPLAY=10.0.2.2:0 and no Xauthority file.
+function Get-NanorvX410Path {
+    $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\x410.exe'
+    if (Test-Path -LiteralPath $alias) { return $alias }
+    $package = Get-AppxPackage -Name 'ChoungNetworksUS.X410S' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($package) {
+        $server = Join-Path $package.InstallLocation 'X410\X410.exe'
+        if (Test-Path -LiteralPath $server) { return $server }
     }
-    $ports=@([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners() | ForEach-Object {$_.Port})
-    $display=100
-    while ($display -le 200 -and $ports -contains (6000+$display)) {$display++}
-    if ($display -gt 200) {throw 'No free X11 display in the supported range'}
-    $directory=Join-Path $Root ('build/serial-x11/'+[Guid]::NewGuid().ToString('N'))
+    foreach ($candidate in @("$env:LOCALAPPDATA\Programs\X410\X410.exe", 'C:\Program Files\X410\X410.exe')) {
+        if (Test-Path -LiteralPath $candidate) { return $candidate }
+    }
+    throw 'x410 is not installed. Install X410 (Microsoft Store or the standalone installer) and retry.'
+}
+function Test-NanorvX11Port([int]$Display) {
+    return @(Get-NetTCPConnection -State Listen -LocalPort (6000 + $Display) -ErrorAction SilentlyContinue).Count -gt 0
+}
+function Start-NanorvX11([string]$Root, [int]$Display = 0) {
+    $server = Get-NanorvX410Path
+    $process = $null
+    if (!(Test-NanorvX11Port $Display)) {
+        # Store builds ignore command line switches, so start the default server
+        # and let it claim :0; it enables TCP and needs no cookie on its own.
+        Start-Process -FilePath $server | Out-Null
+        for ($attempt = 0; $attempt -lt 600 -and !(Test-NanorvX11Port $Display); $attempt++) {
+            Start-Sleep -Milliseconds 100
+        }
+        if (!(Test-NanorvX11Port $Display)) { throw "x410 did not start listening on display :$Display" }
+        $process = Get-Process X410 -ErrorAction SilentlyContinue | Sort-Object StartTime | Select-Object -Last 1
+    }
+    $directory = Join-Path $Root ('build/serial-x11/' + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
-    $cookieBytes=New-Object byte[] 16
-    $random=[Security.Cryptography.RandomNumberGenerator]::Create()
-    try {$random.GetBytes($cookieBytes)} finally {$random.Dispose()}
-    $cookie=([BitConverter]::ToString($cookieBytes)).Replace('-','').ToLowerInvariant()
-    $sessionPath=Join-Path $directory 'session.json'
-    @{display_number=$display;cookie=$cookie} | ConvertTo-Json | Set-Content -LiteralPath $sessionPath -Encoding utf8
-    $auth=New-Object IO.MemoryStream
-    try {
-        $auth.WriteByte(255);$auth.WriteByte(255)
-        foreach ($field in @([byte[]]@(),[Text.Encoding]::ASCII.GetBytes("$display"),[Text.Encoding]::ASCII.GetBytes('MIT-MAGIC-COOKIE-1'),$cookieBytes)) {
-            $auth.WriteByte([byte]($field.Length -shr 8));$auth.WriteByte([byte]($field.Length -band 255))
-            $auth.Write($field,0,$field.Length)
-        }
-        $authPath=Join-Path $directory 'Xauthority'
-        [IO.File]::WriteAllBytes($authPath,$auth.ToArray())
-    } finally {$auth.Dispose()}
-    $arguments=@(":$display",'-multiwindow','-clipboard','-nowgl','-extension','MIT-SHM','-listen','tcp','-auth',$authPath,'-logfile',(Join-Path $directory 'xserver.log'))
-    $quoted=$arguments | ForEach-Object {'"'+([regex]::Replace([regex]::Replace($_,'(\\*)"','$1$1\"'),'(\\+)$','$1$1'))+'"'}
-    $server=Start-Process -FilePath $serverPath -ArgumentList ($quoted -join ' ') -WorkingDirectory (Split-Path $serverPath) -WindowStyle Hidden -PassThru
-    # The user launch waits for the listening socket; building never starts it.
-    for ($attempt=0;$attempt -lt 50;$attempt++) {
-        $server.Refresh()
-        if ($server.HasExited) {throw "X11 server exited; see $directory/xserver.log"}
-        $listeners=[Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
-        if ($listeners.Port -contains (6000+$display)) {
-            return @{process=$server;session=$sessionPath;initrd=(Join-Path $directory 'initrd.cpio')}
-        }
-        Start-Sleep -Milliseconds 100
-    }
-    if (!$server.HasExited) {Stop-Process -Id $server.Id}
-    throw "X11 server did not start listening; see $directory/xserver.log"
+    $sessionPath = Join-Path $directory 'session.json'
+    @{display_number = $Display; cookie = ''} | ConvertTo-Json | Set-Content -LiteralPath $sessionPath -Encoding utf8
+    # Only a process this function started may be stopped by the caller.
+    return @{process = $process; session = $sessionPath; initrd = (Join-Path $directory 'initrd.cpio'); display = $Display}
 }

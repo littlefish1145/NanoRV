@@ -7,9 +7,9 @@
 
 #include <string>
 
-namespace rvvm::debug {
+namespace nanorv::debug {
 
 std::string format_registers(const cpu::Hart& hart);
 void dump_registers(const cpu::Hart& hart);
 
-} // namespace rvvm::debug
+} // namespace nanorv::debug

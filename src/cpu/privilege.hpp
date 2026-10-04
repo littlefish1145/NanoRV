@@ -7,7 +7,7 @@
 
 #include "core/types.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 enum class Privilege : u8 {
     User = 0,
@@ -29,4 +29,4 @@ constexpr bool privilege_at_least(Privilege have, Privilege need) noexcept {
     return static_cast<u8>(have) >= static_cast<u8>(need);
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

@@ -13,7 +13,7 @@
 #include "core/log.hpp"
 #include <atomic>
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 using detail::bits;
@@ -408,4 +408,4 @@ bool execute(Hart& hart, const memory::AddressSpace& memory, const Decoded& insn
     return ok;
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

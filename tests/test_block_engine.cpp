@@ -2,8 +2,8 @@
 #include "cpu/block_engine.hpp"
 #include "test_framework.hpp"
 #include "test_helpers.hpp"
-using namespace rvvm;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::test;
 TEST(block_engine, matches_reference_arithmetic_memory_and_branch) {
   CpuFixture reference, cached;
   reference.hart.set_reg(5,kDramBase+0x800);

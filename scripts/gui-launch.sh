@@ -2,15 +2,15 @@
 # Start GUI programs with a usable session bus, including after su/sudo.
 set -eu
 if [ "$#" -eq 0 ]; then
-  echo 'Usage: rvvm-gui PROGRAM [ARGUMENTS...]' >&2
+  echo 'Usage: nanorv-gui PROGRAM [ARGUMENTS...]' >&2
   exit 2
 fi
-if [ -z "${DISPLAY:-}" ] && [ -r /etc/profile.d/rvvm-x11.sh ]; then
-  . /etc/profile.d/rvvm-x11.sh
+if [ -z "${DISPLAY:-}" ] && [ -r /etc/profile.d/nanorv-x11.sh ]; then
+  . /etc/profile.d/nanorv-x11.sh
 fi
-if [ -z "${DISPLAY:-}" ] && [ -r /etc/rvvm-desktop/session.json ] && [ -r /run/rvvm-desktop/Xauthority ]; then
-  DISPLAY=$(python3 -c 'import json; n=int(json.load(open("/etc/rvvm-desktop/session.json"))["display_number"]); assert 1<=n<=200; print("10.0.2.2:"+str(n))')
-  export DISPLAY XAUTHORITY=/run/rvvm-desktop/Xauthority
+if [ -z "${DISPLAY:-}" ] && [ -r /etc/nanorv-desktop/session.json ] && [ -r /run/nanorv-desktop/Xauthority ]; then
+  DISPLAY=$(python3 -c 'import json; n=int(json.load(open("/etc/nanorv-desktop/session.json"))["display_number"]); assert 1<=n<=200; print("10.0.2.2:"+str(n))')
+  export DISPLAY XAUTHORITY=/run/nanorv-desktop/Xauthority
 fi
 if [ -z "${DISPLAY:-}" ]; then
   echo 'No X11 display. Start Debian with run-debian.ps1 without -NoX11, or use run-app.ps1.' >&2

@@ -3,7 +3,7 @@
 #include "cpu/softint.hpp"
 #include <array>
 #include <bit>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 bool pure_ir(IROp op) noexcept {return op<=IROp::PCRelative;}
 std::vector<IRInstruction> lower_ir(std::span<const CachedInstruction> instructions) {
   std::vector<IRInstruction> output;output.reserve(instructions.size());

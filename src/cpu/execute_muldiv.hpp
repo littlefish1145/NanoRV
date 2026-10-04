@@ -6,7 +6,7 @@
 
 #include "cpu/execute.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 // True when `insn` belongs to the RV64M group (OP/OP-32 with funct7 == 0x01).
 // The funct3 sub-encoding is validated inside execute_muldiv, so an unsupported
@@ -21,4 +21,4 @@ bool execute_muldiv(Hart& hart, const memory::AddressSpace& memory, const Decode
 // Mnemonic for the disassembler ("mul", "divw", ...), or "?" when unsupported.
 const char* muldiv_mnemonic(const Decoded& insn) noexcept;
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

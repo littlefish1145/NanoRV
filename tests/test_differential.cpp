@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Differential test: compares RVVM against the LLVM RISC-V assembler + a
+// Differential test: compares NanoRV against the LLVM RISC-V assembler + a
 // reference model for M and A extension edge cases.
 //
 // The point of this file is that the *expected* values come from the
@@ -12,9 +12,9 @@
 
 #include <vector>
 
-using namespace rvvm;
-using namespace rvvm::cpu;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::cpu;
+using namespace nanorv::test;
 
 namespace {
 

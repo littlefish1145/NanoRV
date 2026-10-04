@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "cpu/decoder.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 constexpr unsigned bit(u32 value, unsigned index) noexcept {
@@ -216,4 +216,4 @@ const char* to_string(InsnFormat format) noexcept {
     return "?";
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

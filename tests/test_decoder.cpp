@@ -4,9 +4,9 @@
 #include "test_framework.hpp"
 #include "test_helpers.hpp"
 
-using namespace rvvm;
-using namespace rvvm::cpu;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::cpu;
+using namespace nanorv::test;
 
 namespace {
 // 0x007f: opcode LOAD-FP (0x07), bits [4:2] != 111 -> ordinary 32 bit encoding.

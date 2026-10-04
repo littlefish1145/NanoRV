@@ -2,7 +2,7 @@
 import argparse, pathlib, subprocess, threading, time, re, os
 from host_affinity import apply_affinity
 p = argparse.ArgumentParser()
-p.add_argument('--exe', default='build/performance-final/bin/Release/rvvm.exe')
+p.add_argument('--exe', default='build/performance-final/bin/Release/nanorv.exe')
 p.add_argument('--timeout', type=int, default=1200)
 p.add_argument('--log', default='build/debian-boot.log')
 p.add_argument('--initrd', default='assets/debian-initrd.cpio')
@@ -11,7 +11,7 @@ p.add_argument('--qemu', action='store_true')
 p.add_argument('--qemu-wsl', action='store_true')
 p.add_argument('--network', choices=['user','none'], help='Windows xPack QEMU has no user-network backend; use none for a matched CPU benchmark')
 p.add_argument('--engine', default='jit')
-p.add_argument('--password', default='rvvm')
+p.add_argument('--password', default='nanorv')
 p.add_argument('--smp', type=int, default=1)
 p.add_argument('--smp-mode', choices=['parallel','cooperative'], default='parallel')
 p.add_argument('--forward',action='append',default=[],help='native loopback TCP host:guest forward')
@@ -41,7 +41,7 @@ if a.gpu: cmd+=['--gpu',a.gpu]
 if a.screenshot: cmd+=['--screenshot',a.screenshot]
 if a.display_backend:cmd+=['--display-backend',a.display_backend]
 if a.host_gpu:cmd+=['--host-gpu',a.host_gpu]
-if a.shell: cmd[cmd.index('--append')+1]+=' rvvm.shell=1'
+if a.shell: cmd[cmd.index('--append')+1]+=' nanorv.shell=1'
 if a.append_extra: cmd[cmd.index('--append')+1]+=' '+a.append_extra
 for forward in a.forward:cmd+=['--forward',forward]
 if a.qemu or a.qemu_wsl:
@@ -60,7 +60,7 @@ if a.qemu or a.qemu_wsl:
     if a.qemu_wsl:
         cmd = ['wsl','-d','Ubuntu-24.04','--'] + cmd
     if a.display: cmd+=['-global','virtio-mmio.force-legacy=false','-device','virtio-gpu-device','-device','virtio-keyboard-device','-display','none']
-    if a.shell: cmd[cmd.index('-append')+1]+=' rvvm.shell=1'
+    if a.shell: cmd[cmd.index('-append')+1]+=' nanorv.shell=1'
     if a.append_extra: cmd[cmd.index('-append')+1]+=' '+a.append_extra
 log = root/a.log
 proc = subprocess.Popen(cmd, cwd=root, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -71,7 +71,7 @@ if a.affinity:
     print('Benchmark host affinity:',hex(a.affinity),flush=True)
 data = bytearray()
 command_timings={}
-marker_pattern=re.compile(rb'\r?\nRVVM_BENCH_(START|DONE)_([0-9]+)(?:=([0-9]+))?\r?\n')
+marker_pattern=re.compile(rb'\r?\nNanoRV_BENCH_(START|DONE)_([0-9]+)(?:=([0-9]+))?\r?\n')
 command_ids=iter(range(1000000))
 def reader():
     tail=b''
@@ -92,14 +92,14 @@ def send(line):
         proc.stdin.write(bytes([byte])); proc.stdin.flush(); time.sleep(.01)
 def wait_for(marker, after=0):
     while proc.poll() is None and time.monotonic() < deadline:
-        if any(failure in data for failure in [b'RVVM: root mount failed',b'RVVM: finit_module failed',b'Kernel panic -']):
+        if any(failure in data for failure in [b'NanoRV: root mount failed',b'NanoRV: finit_module failed',b'Kernel panic -']):
             raise RuntimeError('guest boot failed; see UART transcript')
         if marker in data[after:]: return
         time.sleep(.1)
     raise RuntimeError('guest exited or timed out waiting for '+repr(marker))
 def login(after=0):
     if a.shell:
-        wait_for(b'RVVM_SHELL# ',after)
+        wait_for(b'NanoRV_SHELL# ',after)
         print('Debian diagnostic shell:',round(time.monotonic()-started,2),'seconds',flush=True)
         return
     wait_for(b'login:',after)
@@ -114,11 +114,11 @@ def run_commands(commands):
     for index, command in enumerate(commands):
         command_started=time.monotonic()
         before = len(data)
-        token = 'RVVM_COMMAND_%d_DONE' % index
+        token = 'NanoRV_COMMAND_%d_DONE' % index
         timing_id=next(command_ids)
         if a.precise_timing:
-            send('printf "\\nRVVM_BENCH_START_'+str(timing_id)+'\\n"; '+command+
-                 '; rc=$?; printf "\\nRVVM_BENCH_DONE_'+str(timing_id)+'=%s\\n'+token+'=%s\\n" "$rc" "$rc"')
+            send('printf "\\nNanoRV_BENCH_START_'+str(timing_id)+'\\n"; '+command+
+                 '; rc=$?; printf "\\nNanoRV_BENCH_DONE_'+str(timing_id)+'=%s\\n'+token+'=%s\\n" "$rc" "$rc"')
         else:
             send(command+'; rc=$?; printf "\\n'+token+'=%s\\n" "$rc"')
         wait_for(('\n'+token+'=').encode(), before)
@@ -141,10 +141,10 @@ try:
     if a.shell and a.network != 'none':
         run_commands(['ip link set eth0 up && ip addr add 10.0.2.15/24 dev eth0 && ip route add default via 10.0.2.2 && mkdir -p /run/systemd/resolve && printf "nameserver 10.0.2.3\\n" > /etc/resolv.conf'])
     run_commands(a.command or ['uname -a','cat /etc/debian_version','findmnt /',
-                              'ip -brief address','date -u','echo RVVM_DEBIAN_OK'])
+                              'ip -brief address','date -u','echo NanoRV_DEBIAN_OK'])
     if a.reboot_check:
         before=len(data);send('reboot');login(before)
-        run_commands(a.after_reboot_command or ['findmnt /','ip -brief address','echo RVVM_REBOOT_OK'])
+        run_commands(a.after_reboot_command or ['findmnt /','ip -brief address','echo NanoRV_REBOOT_OK'])
     send('sync; poweroff -ff' if a.shell else 'poweroff')
     # A guest second is not a host second on an interpreter or under SMP.
     proc.wait(timeout=max(90,deadline-time.monotonic()))

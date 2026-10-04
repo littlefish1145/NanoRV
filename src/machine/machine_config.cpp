@@ -10,7 +10,7 @@
 #include <string>
 #include <string_view>
 
-namespace rvvm::machine {
+namespace nanorv::machine {
 namespace {
 
 using R = std::unexpected<std::string>;
@@ -51,11 +51,11 @@ std::expected<std::string, std::string> next_argument(int argc, const char* cons
 
 std::string usage_text() {
     return
-        "RVVM - Windows-native RISC-V (RV64GC) virtual machine\n"
+        "NanoRV - Windows-native RISC-V (RV64GC) virtual machine\n"
         "\n"
         "Usage:\n"
-        "  rvvm run <image.elf|image.bin> [options]\n"
-        "  rvvm <image.elf|image.bin> [options]\n"
+        "  nanorv run <image.elf|image.bin> [options]\n"
+        "  nanorv <image.elf|image.bin> [options]\n"
         "\n"
         "Image:\n"
         "      --bios FILE        OpenSBI firmware (default assets/fw_jump.bin)\n"
@@ -98,7 +98,7 @@ std::string usage_text() {
 }
 
 std::string version_text() {
-    return "rvvm 0.9.0 (RV64GC+Zba/Zbb/Zbs / Sv39/Sv48 / VirtIO+VirGL / parallel SMP / IR x64 JIT, Windows native)";
+    return "nanorv 0.9.0 (RV64GC+Zba/Zbb/Zbs / Sv39/Sv48 / VirtIO+VirGL / parallel SMP / IR x64 JIT, Windows native)";
 }
 
 std::expected<MachineConfig, std::string> parse_command_line(int argc, const char* const* argv) {
@@ -324,4 +324,4 @@ std::expected<MachineConfig, std::string> parse_command_line(int argc, const cha
     return config;
 }
 
-} // namespace rvvm::machine
+} // namespace nanorv::machine

@@ -12,7 +12,7 @@
 #include <bit>
 #include <random>
 #include "cpu/execute_crypto.hpp"
-using namespace rvvm;using namespace rvvm::cpu;using namespace rvvm::test;
+using namespace nanorv;using namespace nanorv::cpu;using namespace nanorv::test;
 TEST(extensions, scalar_crypto_known_aes128_vector_key_schedule_and_reserved_round) {
   CpuFixture c;
   auto instruction=[&](u32 raw,u64 a,u64 b,bool fast=false) {

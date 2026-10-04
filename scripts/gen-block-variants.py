@@ -20,10 +20,10 @@ def build(body,iterations):
     words=[(16<<12)|(10<<7)|0x17,i(1,0,0,1),i(7,0,0,2),i(13,0,0,3),(0x10000<<12)|(28<<7)|0x37]
     hi=(iterations+2048)>>12;lo=iterations-(hi<<12)
     words.extend([(hi<<12)|(30<<7)|0x37,i(lo,30,0,30)])
-    uart(words,'\nRVVM_BARE_START\n')
+    uart(words,'\nNanoRV_BARE_START\n')
     start=len(words)
     words.extend(body);words.append(i(-1,30,0,30));words.append(b((start-len(words))*4,0,30,1))
-    uart(words,'\nRVVM_BARE_DONE\n')
+    uart(words,'\nNanoRV_BARE_DONE\n')
     uart(words,'CHECKSUM=')
     for reg in (1,2,3):
         for shift in range(60,-1,-4):

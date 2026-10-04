@@ -13,7 +13,7 @@
 #include <cstring>
 #include <barrier>
 
-namespace rvvm::machine {
+namespace nanorv::machine {
 namespace {
 // Devices (including WGL/VirGL) remain owned by the calling I/O thread. CPU
 // workers synchronously enqueue MMIO; unrelated CPU execution is never locked.
@@ -65,7 +65,7 @@ struct alignas(64) CpuProgress {
 RunResult Machine::run_parallel() {
   RunResult result;result.hart_cpu_ns.resize(hart_count());result.hart_host_ids.resize(hart_count());
   const u64 started=platform::monotonic_ns();
-  RVVM_INFO("SMP: %u independent vCPU threads, %u shared JIT compiler threads",hart_count(),config_.engine==EngineKind::Jit?config_.jit_workers:0);
+  NanoRV_INFO("SMP: %u independent vCPU threads, %u shared JIT compiler threads",hart_count(),config_.engine==EngineKind::Jit?config_.jit_workers:0);
   for(;;) {
     DeviceQueue devices(uart_);
     if(config_.network)net_.set_receive_wake([&devices]{devices.notify();});
@@ -142,7 +142,7 @@ RunResult Machine::run_parallel() {
         if(config_.engine==EngineKind::Jit)engine.report_statistics(index);
       } catch(const std::exception& e) {
         if(!joined_start)start_harts.arrive_and_drop();
-        std::lock_guard lock(failure_mutex);RVVM_ERROR("vCPU %u failed: %s",index,e.what());result.exit_code=1;stop.store(true,std::memory_order_release);
+        std::lock_guard lock(failure_mutex);NanoRV_ERROR("vCPU %u failed: %s",index,e.what());result.exit_code=1;stop.store(true,std::memory_order_release);
       }
       result.hart_cpu_ns[index]+=platform::thread_cpu_ns()-cpu_started;
       finished.fetch_add(1,std::memory_order_release);
@@ -177,26 +177,26 @@ RunResult Machine::run_parallel() {
     memory_.set_mmio_dispatch(nullptr,nullptr);memory_.set_concurrent(false);
     for(u32 n=0;n<hart_count();++n) {result.instructions+=progress[n].instructions.load();result.native_blocks+=compiled[n];result.linked_blocks+=linked[n];}
     if(test_.stopped && (test_.code&0xffff)==0x7777 && config_.linux_boot && !result.exit_code) {
-      RVVM_INFO("RVVM: parallel guest requested reboot");
+      NanoRV_INFO("NanoRV: parallel guest requested reboot");
       uart_.reset();clint_=devices::Clint{};plic_=devices::Plic{};rtc_=devices::GoldfishRtc{};test_=devices::TestDevice{};
       block_.store(0x70,32,0);net_.store(0x70,32,0);gpu_.store(0x70,32,0);input_.store(0x70,32,0);
       attempts_=uart_poll_at_=plic_poll_at_=net_poll_at_=0;
       std::memset(ram_->host_data(),0,static_cast<std::size_t>(config_.ram_size));
-      auto reloaded=load_image();if(!reloaded) {RVVM_ERROR("reboot: %s",reloaded.error().c_str());result.exit_code=1;break;}
+      auto reloaded=load_image();if(!reloaded) {NanoRV_ERROR("reboot: %s",reloaded.error().c_str());result.exit_code=1;break;}
       continue;
     }
     if(test_.stopped && (test_.code&0xffff)==0x3333)result.exit_code=1;
     if(config_.max_instructions && result.instructions>=config_.max_instructions)result.reason=StopReason::InstructionLimit;
     break;
   }
-  if(config_.graphics && !config_.screenshot_path.empty()) {std::string error;if(!display_.save(config_.screenshot_path,error)) {RVVM_ERROR("screenshot: %s",error.c_str());result.exit_code=1;}}
+  if(config_.graphics && !config_.screenshot_path.empty()) {std::string error;if(!display_.save(config_.screenshot_path,error)) {NanoRV_ERROR("screenshot: %s",error.c_str());result.exit_code=1;}}
   block_.set_async(false);
   uart_.flush();
   result.elapsed_ns=platform::monotonic_ns()-started;
   u64 cpu_total=0;
-  for(u32 n=0;n<hart_count();++n) {cpu_total+=result.hart_cpu_ns[n];RVVM_INFO("vCPU %u: %.3f host CPU seconds",n,result.hart_cpu_ns[n]/1e9);}
-  RVVM_INFO("vCPU concurrency: %.2f host CPU cores (excludes compiler and I/O threads)",result.elapsed_ns?static_cast<double>(cpu_total)/result.elapsed_ns:0.0);
-  RVVM_INFO("JIT: %llu native blocks, %llu native block links",static_cast<unsigned long long>(result.native_blocks),static_cast<unsigned long long>(result.linked_blocks));
+  for(u32 n=0;n<hart_count();++n) {cpu_total+=result.hart_cpu_ns[n];NanoRV_INFO("vCPU %u: %.3f host CPU seconds",n,result.hart_cpu_ns[n]/1e9);}
+  NanoRV_INFO("vCPU concurrency: %.2f host CPU cores (excludes compiler and I/O threads)",result.elapsed_ns?static_cast<double>(cpu_total)/result.elapsed_ns:0.0);
+  NanoRV_INFO("JIT: %llu native blocks, %llu native block links",static_cast<unsigned long long>(result.native_blocks),static_cast<unsigned long long>(result.linked_blocks));
   return result;
 }
 }

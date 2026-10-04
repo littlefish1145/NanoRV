@@ -7,7 +7,7 @@
 
 #include <cstdio>
 
-namespace rvvm::debug {
+namespace nanorv::debug {
 namespace {
 
 std::string hex(u64 value, int width) {
@@ -74,6 +74,6 @@ std::string format_registers(const cpu::Hart& hart) {
     return out;
 }
 
-void dump_registers(const cpu::Hart& hart) { RVVM_INFO("%s", format_registers(hart).c_str()); }
+void dump_registers(const cpu::Hart& hart) { NanoRV_INFO("%s", format_registers(hart).c_str()); }
 
-} // namespace rvvm::debug
+} // namespace nanorv::debug

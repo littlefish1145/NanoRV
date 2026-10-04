@@ -4,7 +4,7 @@
 #include <memory>
 #include <span>
 #include <string>
-namespace rvvm::platform {
+namespace nanorv::platform {
 class DiskFile {
 public:
   DiskFile();

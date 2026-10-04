@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "cpu/privileged.hpp"
 #include "cpu/exec_util.hpp"
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 bool execute_privileged(Hart &h, const Decoded &d, Trap &trap) noexcept {
   auto &c = h.csr;
   u64 m = c.raw(kCsrMstatus);
@@ -92,4 +92,4 @@ bool pending_interrupt(const Hart &h, Trap &trap) noexcept {
   }
   return false;
 }
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

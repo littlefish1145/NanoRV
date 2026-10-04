@@ -9,11 +9,11 @@
 
 #include <string>
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 std::string disassemble(const Decoded& insn);
 
 // Convenience overload for raw instruction bits (picks the length automatically).
 std::string disassemble(u32 raw);
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

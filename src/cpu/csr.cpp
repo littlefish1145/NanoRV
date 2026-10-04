@@ -5,7 +5,7 @@
 
 #include <cstdio>
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 // Stable descriptor storage, indexed by find_csr() for kernel CSR accesses.
@@ -193,4 +193,4 @@ std::string format_csr_dump(const CsrFile& csr, u64 instret) {
     return out;
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

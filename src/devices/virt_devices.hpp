@@ -5,7 +5,7 @@
 #include <array>
 #include <deque>
 #include <mutex>
-namespace rvvm::devices {
+namespace nanorv::devices {
 class Uart final : public memory::MemoryRegion {
 public:
   const char *name() const noexcept override { return "uart"; }
@@ -91,4 +91,4 @@ private:
   u64 latched_ = 0, alarm_ = ~0ull;
   bool enabled_ = false, armed_ = false;
 };
-} // namespace rvvm::devices
+} // namespace nanorv::devices

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <bit>
 #include "core/log.hpp"
-namespace rvvm::devices {
+namespace nanorv::devices {
 namespace {
 u32 get32(std::span<const u8> bytes,std::size_t at) {u32 v=0;if(at+4<=bytes.size())std::memcpy(&v,bytes.data()+at,4);return v;}
 u64 get64(std::span<const u8> bytes,std::size_t at) {u64 v=0;if(at+8<=bytes.size())std::memcpy(&v,bytes.data()+at,8);return v;}
@@ -20,7 +20,7 @@ VirtioGpu::VirtioGpu(memory::AddressSpace& bus,platform::Display& display):Virti
 bool VirtioGpu::open_renderer(std::string& error,platform::HostGpu gpu) {
   if(!renderer_.open(error,gpu))return false;
   if(!renderer_.cap_info(1)[1] || !renderer_.cap_info(2)[1]) {error="host VirGL driver did not provide OpenGL capabilities";return false;}
-  device_features(1);RVVM_INFO("VirGL host renderer: %s",renderer_.description().c_str());return true;
+  device_features(1);NanoRV_INFO("VirGL host renderer: %s",renderer_.description().c_str());return true;
 }
 bool VirtioGpu::config_read(u64 o,unsigned width,u64& v) {
   const std::array<u32,4> config{0,0,1,renderer_.ready()?2u:0u};
@@ -301,7 +301,7 @@ std::vector<u8> VirtioGpu::command(std::span<const u8> b) {
   default:status=0x1205;break;
   }
   if(renderer_.ready() && (get32(b,4)&1))renderer_.finish();
-  if(status>=0x1200)RVVM_WARN("VirtIO GPU rejected command 0x%x (resource %u, context %u, size %zu): 0x%x",type,id,ctx,b.size(),status);
+  if(status>=0x1200)NanoRV_WARN("VirtIO GPU rejected command 0x%x (resource %u, context %u, size %zu): 0x%x",type,id,ctx,b.size(),status);
   put32(response,0,status);return response;
 }
 void VirtioGpu::notify(unsigned index) {
@@ -344,7 +344,7 @@ bool VirtioInput::config_write(u64 o,unsigned width,u64 v) {
 bool VirtioInput::config_read(u64 o,unsigned width,u64& v) {
   std::array<u8,136> bytes{};bytes[0]=select_;bytes[1]=subsel_;
   if(select_==1 || select_==2) {
-    const std::string name=select_==1?"RVVM keyboard and mouse":"rvvm-input-1";
+    const std::string name=select_==1?"NanoRV keyboard and mouse":"nanorv-input-1";
     bytes[2]=static_cast<u8>(name.size());std::memcpy(bytes.data()+8,name.data(),name.size());
   } else if(select_==3) {bytes[2]=8;bytes[8]=6;bytes[10]=0x56;bytes[11]=0x52;bytes[12]=1;bytes[14]=1;}
   else if(select_==0x11) {

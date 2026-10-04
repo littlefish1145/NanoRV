@@ -1,0 +1,15 @@
+[Unit]
+Description=Install the NanoRV guest X11 server once
+ConditionKernelCommandLine=nanorv.graphics=1
+After=network-online.target systemd-modules-load.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/nanorv-setup-xorg
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

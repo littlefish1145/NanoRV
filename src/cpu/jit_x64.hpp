@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 #include <array>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 struct CachedInstruction {
   using Executor=bool(*)(Hart*,const memory::AddressSpace*,const CachedInstruction*,Trap*) noexcept;
   Decoded decoded;u32 original;

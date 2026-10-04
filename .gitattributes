@@ -1,0 +1,5 @@
+# Guest scripts are injected into the Debian initrd and executed by /bin/sh,
+# so they must keep LF endings in the working tree even with core.autocrlf=true.
+*.sh text eol=lf
+*.py text eol=lf
+*.service text eol=lf

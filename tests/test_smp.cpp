@@ -9,8 +9,8 @@
 #include <thread>
 #include <set>
 #include <atomic>
-using namespace rvvm;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::test;
 TEST(smp, fast_subword_stores_and_generic_stores_do_not_lose_updates) {
   CpuFixture c;c.space.set_concurrent(true);
   auto* data=c.space.direct(kDramBase+0x800,8,memory::Access::Write);

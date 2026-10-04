@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace rvvm::core {
+namespace nanorv::core {
 
 struct LoadedImage {
     u64 entry = 0;
@@ -32,4 +32,4 @@ LoadResult load_elf(memory::AddressSpace& memory, const std::vector<std::uint8_t
 LoadResult load_raw(memory::AddressSpace& memory, const std::vector<std::uint8_t>& image,
                     u64 load_address, std::optional<u64> entry);
 
-} // namespace rvvm::core
+} // namespace nanorv::core

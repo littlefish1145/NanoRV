@@ -11,7 +11,7 @@
 #include <string>
 #include <string_view>
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 constexpr std::string_view kRegNames[32] = {
@@ -391,4 +391,4 @@ std::string disassemble(const Decoded& insn) {
 
 std::string disassemble(u32 raw) { return disassemble(decode(raw)); }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

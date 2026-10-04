@@ -1,4 +1,4 @@
-"""Read counters and nested timing samples from a completed RVVM UART log."""
+"""Read counters and nested timing samples from a completed NanoRV UART log."""
 import argparse,json,pathlib,re
 p=argparse.ArgumentParser();p.add_argument('log');p.add_argument('--output');a=p.parse_args()
 text=pathlib.Path(a.log).read_text(encoding='utf-8',errors='replace')

@@ -8,7 +8,7 @@
 #   clang --target=riscv64-unknown-elf -march=rv64i -mabi=lp64 -nostdlib \
 #         -Wl,-Ttext=0x80000000 -fuse-ld=lld -o program.elf program.S
 #
-#   rvvm run program.elf --trace
+#   nanorv run program.elf --trace
 
     .section .text
     .globl _start

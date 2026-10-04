@@ -18,7 +18,7 @@ using socklen_t = int;
 #include <condition_variable>
 #include <chrono>
 #include <unordered_map>
-namespace rvvm::platform {
+namespace nanorv::platform {
 struct NatNetwork::Impl {
   HMODULE module = nullptr;
   DLL_DIRECTORY_COOKIE directory = nullptr;
@@ -126,7 +126,7 @@ bool NatNetwork::open(std::string& error,std::span<const PortForward> forwards) 
   inet_pton(AF_INET, "10.0.2.2", &cfg.vhost);
   inet_pton(AF_INET, "10.0.2.15", &cfg.vdhcp_start);
   inet_pton(AF_INET, "10.0.2.3", &cfg.vnameserver);
-  cfg.vhostname = "rvvm"; cfg.if_mtu = cfg.if_mru = 1500;
+  cfg.vhostname = "nanorv"; cfg.if_mtu = cfg.if_mru = 1500;
   s.slirp = s.create(&cfg, &cb, &s);
   if (!s.slirp) { error = "libslirp initialization failed"; return false; }
   for(const auto& port:forwards) {
@@ -261,4 +261,4 @@ void NatNetwork::set_receive_wake(std::function<void()> callback) {
   std::lock_guard lock(impl_->frames_mutex);
   impl_->receive_wake=std::move(callback);
 }
-} // namespace rvvm::platform
+} // namespace nanorv::platform

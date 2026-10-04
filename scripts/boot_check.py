@@ -2,7 +2,7 @@
 import argparse, hashlib, pathlib, subprocess, threading, time, os
 p = argparse.ArgumentParser()
 p.add_argument('--qemu', action='store_true')
-p.add_argument('--exe', default='build/performance-final/bin/Release/rvvm.exe')
+p.add_argument('--exe', default='build/performance-final/bin/Release/nanorv.exe')
 p.add_argument('--initrd', default='assets/initrd.cpio')
 p.add_argument('--engine', default='jit')
 p.add_argument('--timeout', type=int, default=600)
@@ -29,19 +29,19 @@ deadline = time.monotonic()+a.timeout
 started = time.monotonic()
 sent = False
 success = False
-payload = b'RVVM guest filesystem check\n'
+payload = b'NanoRV guest filesystem check\n'
 expected_hash = hashlib.sha256(payload).hexdigest().encode()
 commands = [
     b'uname -a\n', b'mount -t proc proc /proc\n', b'cat /proc/cpuinfo\n',
-    b'mkdir -p /tmp\n', b"printf 'RVVM guest filesystem check\\n' > /tmp/rvvm-check\n",
-    b'sha256sum /tmp/rvvm-check\n',
+    b'mkdir -p /tmp\n', b"printf 'NanoRV guest filesystem check\\n' > /tmp/nanorv-check\n",
+    b'sha256sum /tmp/nanorv-check\n',
     b"awk 'BEGIN { printf \"FLOAT=%.3f\\n\", 1.5*2.25+0.625 }'\n",
     b'i=0; while [ "$i" -lt 100 ]; do i=$((i + 1)); done; echo LOOP=$i\n',
-    b'sleep 1; echo TIMER_OK\n', b'echo RVVM_BOOT_OK\n',
+    b'sleep 1; echo TIMER_OK\n', b'echo NanoRV_BOOT_OK\n',
 ]
 def verified():
     text = bytes(data).replace(b'\r',b'')
-    return (b'\nRVVM_BOOT_OK\n' in text and expected_hash in text and b'FLOAT=4.000' in text
+    return (b'\nNanoRV_BOOT_OK\n' in text and expected_hash in text and b'FLOAT=4.000' in text
             and b'LOOP=100' in text and b'\nTIMER_OK\n' in text and b'6.12.107+deb13-riscv64' in text)
 try:
     while proc.poll() is None and time.monotonic()<deadline:

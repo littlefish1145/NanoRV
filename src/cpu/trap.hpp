@@ -6,7 +6,7 @@
 
 #include "core/types.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 enum class TrapCause : u64 {
     InstructionAddressMisaligned = 0,
@@ -38,4 +38,4 @@ struct Trap {
     }
 };
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

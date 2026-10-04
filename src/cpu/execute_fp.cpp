@@ -5,7 +5,7 @@
 extern "C" {
 #include "softfloat.h"
 }
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 constexpr u64 nan32 = 0x7fc00000, nan64 = 0x7ff8000000000000;
 u64 operand(const Hart &h, unsigned n, bool dbl) {
@@ -246,4 +246,4 @@ bool execute_fp(Hart &h, const memory::AddressSpace &bus, const Decoded &d,
   dirty(h);
   return true;
 }
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

@@ -2,7 +2,7 @@
 #include "cpu/execute_bitmanip.hpp"
 #include <bit>
 #include <algorithm>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 bool execute_bitmanip(Hart& h,const Decoded& d) noexcept {
   const auto op=d.opcode,f=d.funct3,fn=d.funct7;
   const u64 a=h.get_reg(d.rs1),b=h.get_reg(d.rs2);

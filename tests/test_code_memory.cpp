@@ -12,8 +12,8 @@
 #define NOMINMAX
 #include <windows.h>
 #endif
-using namespace rvvm;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::test;
 
 TEST(platform, wake_event_combines_external_event_notification_and_timeout) {
 #if defined(_WIN32)

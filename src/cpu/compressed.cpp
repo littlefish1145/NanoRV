@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "cpu/compressed.hpp"
 #include "cpu/decoder.hpp"
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 u32 i(u32 op, u32 rd, u32 f, u32 rs, i32 imm) {
   return (static_cast<u32>(imm) & 4095) << 20 | rs << 15 | f << 12 | rd << 7 |
@@ -124,4 +124,4 @@ u32 expand_compressed(u16 raw) noexcept {
   }
   return 0;
 }
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

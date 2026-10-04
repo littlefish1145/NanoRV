@@ -2,7 +2,7 @@
 #pragma once
 #include "cpu/jit_x64.hpp"
 #include <vector>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 enum class IROp : u8 {Nop,Const,Move,Add,Sub,And,Or,Xor,Shl,Shr,Sar,Mul,Div,Rem,RotateLeft,RotateRight,AndNot,OrNot,Xnor,ByteSwap,SignByte,SignHalf,ZeroHalf,Compare,Select,PCRelative,Load,Store,FloatLoad,FloatStore,Branch,BranchCond,CallHelper,Exit};
 struct IRInstruction {
   IROp op=IROp::CallHelper;

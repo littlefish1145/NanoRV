@@ -11,10 +11,10 @@
 
 #include <vector>
 
-namespace rvvm::test {
+namespace nanorv::test {
 
 struct CpuFixture {
-    CpuFixture(u64 ram_bytes = 1u << 20, u64 ram_base = rvvm::kDramBase)
+    CpuFixture(u64 ram_bytes = 1u << 20, u64 ram_base = nanorv::kDramBase)
         : ram("dram", ram_bytes, ram_base) {
         memory::Permissions permissions{};
         space.add(ram_base, ram_bytes, &ram, "dram", permissions);
@@ -200,4 +200,4 @@ constexpr u32 nop() { return addi(0, 0, 0); }
 
 } // namespace enc
 
-} // namespace rvvm::test
+} // namespace nanorv::test

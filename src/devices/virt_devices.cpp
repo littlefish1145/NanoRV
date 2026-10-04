@@ -3,7 +3,7 @@
 #include "platform/platform.hpp"
 #include <chrono>
 #include <bit>
-namespace rvvm::devices {
+namespace nanorv::devices {
 bool Uart::interrupt() const noexcept {
   std::lock_guard lock(mutex_);
   return (!(regs_[3] & 128)) &&
@@ -248,4 +248,4 @@ bool GoldfishRtc::store(u64 o, unsigned w, u64 v) noexcept {
   }
   return true;
 }
-} // namespace rvvm::devices
+} // namespace nanorv::devices

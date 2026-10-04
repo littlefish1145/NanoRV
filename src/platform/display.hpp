@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "platform/vulkan.hpp"
-namespace rvvm::platform {
+namespace nanorv::platform {
 enum class DisplayBackend { Auto, Gdi, Vulkan };
 struct InputEvent {std::uint16_t type=0,code=0;std::int32_t value=0;};
 class Display {

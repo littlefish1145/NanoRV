@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <vector>
 
-namespace rvvm::core {
+namespace nanorv::core {
 namespace {
 
 LogLevel g_level = LogLevel::Info;
@@ -96,4 +96,4 @@ void log_fatal(const char* format, ...) {
     std::abort();
 }
 
-} // namespace rvvm::core
+} // namespace nanorv::core

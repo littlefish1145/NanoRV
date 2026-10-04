@@ -20,7 +20,7 @@ loop="""for i in range(100):
  c.sendall(data)
 """
 code=('import socket; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); '
-      's.bind(("0.0.0.0",46000)); s.listen(1); print("RVVM_LATENCY_READY",flush=True); '
+      's.bind(("0.0.0.0",46000)); s.listen(1); print("NanoRV_LATENCY_READY",flush=True); '
       'c,_=s.accept(); c.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1); '
       'exec('+repr(loop)+'); c.close(); s.close()')
 command='python3 -u -c '+shlex.quote(code)
@@ -30,7 +30,7 @@ with result.open('w',encoding='utf-8') as output:
         '--log',str(log),'--forward',f'{a.port}:46000','--command',command],cwd=root,stdout=output,stderr=subprocess.STDOUT)
     deadline=time.monotonic()+900
     try:
-        while not (log.exists() and b'\rRVVM_LATENCY_READY\r\n' in log.read_bytes()):
+        while not (log.exists() and b'\rNanoRV_LATENCY_READY\r\n' in log.read_bytes()):
             if process.poll() is not None:raise RuntimeError('guest exited before readiness; see '+str(result))
             if time.monotonic()>deadline:raise TimeoutError('guest echo readiness timeout')
             time.sleep(.2)

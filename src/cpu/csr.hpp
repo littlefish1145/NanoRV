@@ -17,7 +17,7 @@
 #include <string>
 #include <array>
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 // CSR addresses implemented in this stage.
 enum CsrAddress : u32 {
@@ -41,9 +41,9 @@ enum CsrAddress : u32 {
 };
 
 // Project identification. mvendorid/marchid/mimpid are opaque values; marchid
-// spells "RVVM" so that guest software can recognise the platform.
+// spells "NanoRV" so that guest software can recognise the platform.
 inline constexpr u64 kVendorId = 0x00000000'00000000ull;
-inline constexpr u64 kArchId = 0x5256'564dull; // "RVVM"
+inline constexpr u64 kArchId = 0x5256'564dull; // "NanoRV"
 inline constexpr u64 kImplId = 0x0000'0001'0000'0000ull;
 
 struct CsrInfo {
@@ -114,4 +114,4 @@ u64 read_timebase_ticks(u64 timebase_frequency) noexcept;
 // Human readable dump of every implemented CSR, for the register dump.
 std::string format_csr_dump(const CsrFile& csr, u64 instret);
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

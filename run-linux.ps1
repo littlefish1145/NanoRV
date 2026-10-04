@@ -3,7 +3,7 @@ param([string]$Append = 'console=ttyS0 earlycon=sbi rdinit=/bin/sh TERM=dumb', [
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 try {
-    $binary = Join-Path $PSScriptRoot 'build/perf21/bin/Release/rvvm.exe'
+    $binary = Join-Path $PSScriptRoot 'build/perf21/bin/Release/nanorv.exe'
     if (!(Test-Path -LiteralPath $binary)) { & ./scripts/build.ps1 -BuildDir build/perf21 -NoTests }
     $initrd = 'assets/initrd.gz'
     if (!$OriginalInitrd) { & ./scripts/prepare-initrd.ps1; $initrd = 'assets/initrd.cpio' }

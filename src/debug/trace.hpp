@@ -7,8 +7,8 @@
 #include "cpu/hart.hpp"
 #include "cpu/decoder.hpp"
 
-namespace rvvm::debug {
+namespace nanorv::debug {
 
 void trace_instruction(const cpu::Hart& hart, const cpu::Decoded& insn);
 
-} // namespace rvvm::debug
+} // namespace nanorv::debug

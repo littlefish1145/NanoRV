@@ -1,4 +1,4 @@
-"""Short Windows thread-context sample of an existing RVVM process.
+"""Short Windows thread-context sample of an existing NanoRV process.
 
 This samples wall-time locations, not hardware CPU events. Threads are suspended
 only for GetThreadContext and always resumed immediately, including on errors.
@@ -66,7 +66,7 @@ threads = {}
 try:
     name = c.create_unicode_buffer(32768); length = w.DWORD(len(name))
     if not image_name(process, 0, name, c.byref(length)): raise c.WinError(c.get_last_error())
-    if pathlib.Path(name.value).name.lower() != 'rvvm.exe': raise ValueError('PID must identify rvvm.exe')
+    if pathlib.Path(name.value).name.lower() != 'nanorv.exe': raise ValueError('PID must identify nanorv.exe')
     if a.memory:
         address = 0; regions = []; allocations = set(); mapped_regions=0
         while True:
@@ -123,7 +123,7 @@ try:
         module = c.create_unicode_buffer(1024)
         if not mapped(process, ip, module, len(module)): return 'other'
         module_name = pathlib.PureWindowsPath(module.value).name
-        if module_name.lower() == 'rvvm.exe' and symbols:
+        if module_name.lower() == 'nanorv.exe' and symbols:
             rva = ip - info.allocation; index = bisect.bisect_right(symbol_addresses, rva) - 1
             if index >= 0:
                 address, symbol = symbols[index]; result = c.create_string_buffer(4096)

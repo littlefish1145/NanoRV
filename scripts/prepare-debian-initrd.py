@@ -4,10 +4,31 @@ All binaries/modules come from Debian. The installed disk remains unchanged.
 """
 import pathlib, subprocess, shutil, tempfile, os, gzip
 root = pathlib.Path(__file__).resolve().parent.parent
-with tempfile.TemporaryDirectory(prefix='rvvm-initrd-') as temporary:
+
+
+def load_initramfs():
+    """Return the Debian initramfs as newc cpio bytes.
+
+    extract-debian.py writes assets/debian-initrd.cpio straight out of the
+    guest image, where Debian stores it uncompressed; accept gzip as well.
+    """
+    for name in ('assets/debian-boot-initrd.cpio', 'assets/debian-initrd.img', 'assets/initrd.gz'):
+        candidate = root / name
+        if not candidate.exists():
+            continue
+        data = candidate.read_bytes()
+        if data[:6] != b'070701':
+            data = gzip.decompress(data)
+        if data[:6] == b'070701':
+            return data
+    raise SystemExit('no Debian initramfs found; run scripts/extract-debian.py first')
+
+
+with tempfile.TemporaryDirectory(prefix='nanorv-initrd-') as temporary:
     work = pathlib.Path(temporary)
     extracted = work/'source'
-    subprocess.run(['unmkinitramfs',str(root/'assets/debian-initrd.img'),str(extracted)],check=True)
+    archive = gzip.compress(load_initramfs())
+    subprocess.run(['unmkinitramfs','/dev/stdin',str(extracted)],input=archive,check=True)
     output = work/'root'
     for directory in ['bin','dev','proc','sys','newroot','usr/lib/riscv64-linux-gnu','lib']:
         (output/directory).mkdir(parents=True,exist_ok=True)
@@ -15,7 +36,7 @@ with tempfile.TemporaryDirectory(prefix='rvvm-initrd-') as temporary:
     installer = work/'installer'
     installer.mkdir()
     subprocess.run(['cpio','-id','--no-absolute-filenames','*busybox','*lib/*'],cwd=installer,
-                   input=gzip.decompress((root/'assets/initrd.gz').read_bytes()),
+                   input=archive,
                    stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
     busybox = next(p for p in installer.rglob('busybox') if not p.is_symlink())
     shutil.copy2(busybox,output/'bin/busybox')
@@ -75,7 +96,7 @@ for attempt in 1 2 3 4 5; do
   [ -b /dev/vda1 ] && break
   sleep 1
 done
-mount -t ext4 -o rw /dev/vda1 /newroot || { echo 'RVVM: root mount failed'; exec sh; }
+mount -t ext4 -o rw /dev/vda1 /newroot || { echo 'NanoRV: root mount failed'; exec sh; }
 mount -o move /dev /newroot/dev
 mount -o move /proc /newroot/proc
 mount -o move /sys /newroot/sys

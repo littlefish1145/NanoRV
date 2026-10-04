@@ -1,0 +1,16 @@
+[Unit]
+Description=NanoRV guest X11 server on the VirtIO GPU
+ConditionKernelCommandLine=nanorv.graphics=1
+After=systemd-modules-load.service nanorv-setup-xorg.service
+Wants=nanorv-setup-xorg.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/nanorv-x11
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

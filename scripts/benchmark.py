@@ -1,6 +1,6 @@
 """Reproducible guest instruction throughput for the three execution engines."""
 import pathlib,struct,subprocess,argparse
-parser=argparse.ArgumentParser();parser.add_argument('--exe',default='build/performance-final/bin/Release/rvvm.exe')
+parser=argparse.ArgumentParser();parser.add_argument('--exe',default='build/performance-final/bin/Release/nanorv.exe')
 parser.add_argument('--instructions',type=int,default=100000000)
 args=parser.parse_args()
 root=pathlib.Path(__file__).resolve().parent.parent

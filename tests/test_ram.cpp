@@ -4,8 +4,8 @@
 
 #include <cstring>
 
-using namespace rvvm;
-using namespace rvvm::memory;
+using namespace nanorv;
+using namespace nanorv::memory;
 
 TEST(ram, allocates_and_zeroes) {
     RamRegion ram("dram", 4096, 0x80000000);

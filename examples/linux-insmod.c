@@ -20,7 +20,7 @@ void start_c(long argc, char** argv) {
       result = call3(273, fd, (long)"", 0);
       call3(57, fd, 0, 0);
     }
-    if (result < 0) { message("RVVM: finit_module failed: "); message(argv[1]); message("\n"); }
+    if (result < 0) { message("NanoRV: finit_module failed: "); message(argv[1]); message("\n"); }
   }
   call3(93, result < 0 ? 1 : 0, 0, 0);
   for (;;) {}

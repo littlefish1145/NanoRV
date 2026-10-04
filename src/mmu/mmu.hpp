@@ -2,7 +2,7 @@
 #pragma once
 #include "cpu/execute.hpp"
 #include <utility>
-namespace rvvm::mmu {
+namespace nanorv::mmu {
 // Native chains exit at SYSTEM/FENCE/trap boundaries. Validate all data
 // translation context once before entering a chain, including MPRV/SUM/MXR.
 inline void prepare_native_tlb(cpu::Hart& h,const memory::AddressSpace& bus) noexcept {
@@ -40,4 +40,4 @@ bool load(cpu::Hart &, const memory::AddressSpace &, u64, unsigned, u64 &,
           cpu::Trap &, bool fetch = false) noexcept;
 bool store(cpu::Hart &, const memory::AddressSpace &, u64, unsigned, u64,
            cpu::Trap &) noexcept;
-} // namespace rvvm::mmu
+} // namespace nanorv::mmu

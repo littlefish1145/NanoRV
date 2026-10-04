@@ -13,7 +13,7 @@ param(
     [string]$Append = 'console=ttyS0 earlycon=sbi root=/dev/vda1 rw loglevel=6 systemd.firstboot=no',
     [switch]$FullInitrd,
     [switch]$NoX11,
-    [string]$Binary = 'build/perf22/bin/Release/rvvm.exe'
+    [string]$Binary = 'build/perf22/bin/Release/nanorv.exe'
 )
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
@@ -29,31 +29,31 @@ try {
     if (!(Test-Path -LiteralPath $Disk) -or !(Test-Path -LiteralPath $initrd)) {
         throw 'Debian assets missing. Run .\scripts\prepare-debian.ps1 once; see docs/LINUX_BOOT.md.'
     }
-    Write-Host 'Debian serial console: root / rvvm. Type poweroff to shut down.'
+    Write-Host 'Debian serial console: root / nanorv. Type poweroff to shut down.'
     $extra=@()
     if ($DisplayBackend -eq 'vulkan' -and $Display -ne 'window') {throw '-DisplayBackend vulkan requires -Display window'}
     if ($Display -ne 'none') {
         $extra+=@('--display',$Display,'--gpu',$Gpu)
         if ($DisplayBackend -ne 'auto') { $extra+=@('--display-backend',$DisplayBackend) }
         if ($HostGpu -ne 'auto') { $extra+=@('--host-gpu',$HostGpu) }
-        $Append+=' rvvm.graphics=1'
+        $Append+=' nanorv.graphics=1'
     }
     if ($HttpProxy) {
         if ($HttpProxy -match '[\s"\\]') { throw 'HTTP proxy must be a URL without whitespace or quotes.' }
-        $Append+=" rvvm.http_proxy=$HttpProxy"
+        $Append+=" nanorv.http_proxy=$HttpProxy"
     }
     if (!$NoX11 -and $Display -eq 'none') {
         . ./scripts/x11-session.ps1
-        $x11=Start-RvvmX11 $PSScriptRoot
+        $x11=Start-NanorvX11 $PSScriptRoot
         $base=if ($FullInitrd) {'assets/debian-initrd.cpio'} else {$initrd}
         & python scripts/prepare-desktop-initrd.py --serial-x11 --session $x11.session --base $base --output $x11.initrd
         if ($LASTEXITCODE) {throw 'Serial X11 initrd preparation failed'}
-        $initrd=$x11.initrd;$Append+=' rvvm.x11=1'
+        $initrd=$x11.initrd;$Append+=' nanorv.x11=1'
         Write-Host 'GUI applications can be launched here with commands such as gimp or xterm.'
     }
     & $binaryPath --bios assets/fw_jump.bin --kernel assets/linux --initrd $initrd --disk $Disk --net user -m $Memory --smp $Smp --smp-mode $SmpMode --engine $Engine --jit-workers $JitWorkers --append $Append --no-reg-dump @extra
     exit $LASTEXITCODE
 } finally {
-    if ($x11) {$x11.process.Refresh();if (!$x11.process.HasExited) {Stop-Process -Id $x11.process.Id}}
+    if ($x11 -and $x11.process) {$x11.process.Refresh();if (!$x11.process.HasExited) {Stop-Process -Id $x11.process.Id}}
     Pop-Location
 }

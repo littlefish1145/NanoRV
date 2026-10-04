@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include "platform/vulkan.hpp"
-namespace rvvm::platform {
+namespace nanorv::platform {
 struct RenderBacking {void* data;std::size_t size;};
 class Renderer {
 public:

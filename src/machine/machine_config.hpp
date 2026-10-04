@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace rvvm::machine {
+namespace nanorv::machine {
 
 enum class EngineKind {
     Interpreter, // reference interpreter (always available)
@@ -45,7 +45,7 @@ struct MachineConfig {
     bool realtime_clock = false;
     bool parallel_harts = true;
     std::string screenshot_path;
-    u64 raw_load_address = rvvm::kDramBase;
+    u64 raw_load_address = nanorv::kDramBase;
     std::optional<u64> entry_override;
 
     // --- machine -----------------------------------------------------------
@@ -74,4 +74,4 @@ std::expected<MachineConfig, std::string> parse_command_line(int argc, const cha
 std::string usage_text();
 std::string version_text();
 
-} // namespace rvvm::machine
+} // namespace nanorv::machine

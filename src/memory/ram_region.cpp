@@ -5,20 +5,20 @@
 
 #include <cstring>
 
-namespace rvvm::memory {
+namespace nanorv::memory {
 
 RamRegion::RamRegion(std::string name, u64 size_bytes, u64 base_address)
     : name_(std::move(name)), size_(size_bytes), base_(base_address) {
     allocated_ = platform::align_up_pages(size_);
     data_ = static_cast<std::uint8_t*>(platform::allocate(allocated_, platform::Protect::ReadWrite));
     if (data_ == nullptr) {
-        RVVM_FATAL("ram: failed to allocate %llu bytes for '%s': %s",
+        NanoRV_FATAL("ram: failed to allocate %llu bytes for '%s': %s",
                    static_cast<unsigned long long>(allocated_), name_.c_str(),
                    platform::last_error().c_str());
     }
     // VirtualAlloc guarantees zeroed pages; assert the invariant the loaders rely on
     // for .bss handling.
-    RVVM_DEBUG("ram: '%s' %llu MiB at 0x%016llx", name_.c_str(),
+    NanoRV_DEBUG("ram: '%s' %llu MiB at 0x%016llx", name_.c_str(),
                static_cast<unsigned long long>(size_ / (1024 * 1024)),
                static_cast<unsigned long long>(base_));
 }
@@ -34,7 +34,7 @@ bool RamRegion::load(u64 offset, unsigned width_bits, u64& value) noexcept {
     const unsigned bytes = width_bits / 8;
     if ((width_bits != 8 && width_bits != 16 && width_bits != 32 && width_bits != 64) ||
         offset + bytes > size_) {
-        RVVM_ERROR("ram: bad %u-bit load at offset 0x%llx (size 0x%llx)", width_bits,
+        NanoRV_ERROR("ram: bad %u-bit load at offset 0x%llx (size 0x%llx)", width_bits,
                    static_cast<unsigned long long>(offset), static_cast<unsigned long long>(size_));
         return false;
     }
@@ -72,7 +72,7 @@ bool RamRegion::store(u64 offset, unsigned width_bits, u64 value) noexcept {
     const unsigned bytes = width_bits / 8;
     if ((width_bits != 8 && width_bits != 16 && width_bits != 32 && width_bits != 64) ||
         offset + bytes > size_) {
-        RVVM_ERROR("ram: bad %u-bit store at offset 0x%llx (size 0x%llx)", width_bits,
+        NanoRV_ERROR("ram: bad %u-bit store at offset 0x%llx (size 0x%llx)", width_bits,
                    static_cast<unsigned long long>(offset), static_cast<unsigned long long>(size_));
         return false;
     }
@@ -100,4 +100,4 @@ bool RamRegion::store(u64 offset, unsigned width_bits, u64 value) noexcept {
     return true;
 }
 
-} // namespace rvvm::memory
+} // namespace nanorv::memory

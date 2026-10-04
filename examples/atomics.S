@@ -6,7 +6,7 @@
 # Build:
 #   .\build.ps1 -Source atomics.S -Output atomics.elf -March rv64ima
 # Run:
-#   rvvm run atomics.elf --trace
+#   nanorv run atomics.elf --trace
 
     .section .text
     .globl _start

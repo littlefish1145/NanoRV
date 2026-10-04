@@ -3,7 +3,7 @@
 # Build:
 #   .\build.ps1 -Source csr.S -Output csr.elf -March rv64i_zicsr
 # Run:
-#   rvvm run csr.elf --trace
+#   nanorv run csr.elf --trace
 
     .section .text
     .globl _start
@@ -13,7 +13,7 @@ _start:
     # --- identity registers (machine level) --------------------------------
     li      a0, 0
     csrr    t0, mvendorid
-    csrr    t1, marchid           # 0x5256564d ("RVVM")
+    csrr    t1, marchid           # 0x5256564d ("NanoRV")
     csrr    t2, mimpid
     csrr    t3, mhartid           # 0 on the first hart
 

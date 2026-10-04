@@ -7,21 +7,21 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 bool BlockEngine::profiling_requested() noexcept {
-  static const bool enabled=[] {const auto* setting=std::getenv("RVVM_PROFILE");return setting && std::strcmp(setting,"1")==0;}();
+  static const bool enabled=[] {const auto* setting=std::getenv("NanoRV_PROFILE");return setting && std::strcmp(setting,"1")==0;}();
   return enabled;
 }
 bool BlockEngine::direct_links_requested() noexcept {
-  static const bool enabled=[] {const auto* setting=std::getenv("RVVM_DIRECT_LINKS");return !setting || std::strcmp(setting,"0")!=0;}();
+  static const bool enabled=[] {const auto* setting=std::getenv("NanoRV_DIRECT_LINKS");return !setting || std::strcmp(setting,"0")!=0;}();
   return enabled;
 }
 bool BlockEngine::inline_loads_requested() noexcept {
-  static const bool enabled=[] {const auto* setting=std::getenv("RVVM_INLINE_LOADS");return !setting || std::strcmp(setting,"0")!=0;}();
+  static const bool enabled=[] {const auto* setting=std::getenv("NanoRV_INLINE_LOADS");return !setting || std::strcmp(setting,"0")!=0;}();
   return enabled;
 }
 bool BlockEngine::inline_stores_requested() noexcept {
-  static const bool enabled=[] {const auto* setting=std::getenv("RVVM_INLINE_STORES");return !setting || std::strcmp(setting,"0")!=0;}();
+  static const bool enabled=[] {const auto* setting=std::getenv("NanoRV_INLINE_STORES");return !setting || std::strcmp(setting,"0")!=0;}();
   return enabled;
 }
 BlockEngine::RunSample::RunSample(BlockEngine& engine,bool enabled):owner(engine),active(enabled) {
@@ -360,20 +360,20 @@ BlockEngine::Result BlockEngine::run_batch(Hart& hart,const memory::AddressSpace
 void BlockEngine::report_statistics(u32 hart_id) const {
   const auto& s=statistics_;
   const auto simd=platform::code_compare_backend();
-  RVVM_INFO("JIT snapshot compare: %.*s",static_cast<int>(simd.size()),simd.data());
-  RVVM_INFO("JIT profile hart %u: dispatch=%llu decode=%llu eviction=%llu invalidation=%llu revalidation=%llu native_insn=%llu cold_insn=%llu queued=%llu link_hit=%llu link_miss=%llu self_loop=%llu",
+  NanoRV_INFO("JIT snapshot compare: %.*s",static_cast<int>(simd.size()),simd.data());
+  NanoRV_INFO("JIT profile hart %u: dispatch=%llu decode=%llu eviction=%llu invalidation=%llu revalidation=%llu native_insn=%llu cold_insn=%llu queued=%llu link_hit=%llu link_miss=%llu self_loop=%llu",
     hart_id,static_cast<unsigned long long>(s.dispatches),static_cast<unsigned long long>(s.decoded),
     static_cast<unsigned long long>(s.evicted),static_cast<unsigned long long>(s.invalidated),
     static_cast<unsigned long long>(s.revalidated),static_cast<unsigned long long>(s.native_instructions),
     static_cast<unsigned long long>(s.cold_instructions),static_cast<unsigned long long>(s.queued),
     static_cast<unsigned long long>(s.link_hits),static_cast<unsigned long long>(s.link_misses),
     static_cast<unsigned long long>(s.self_loops));
-  RVVM_INFO("JIT detail hart %u: direct_link_hit=%llu slow_link_hit=%llu link_exit=%llu budget_exit=%llu boundary_exit=%llu tail_insn=%llu pending_insn=%llu warming_insn=%llu",
+  NanoRV_INFO("JIT detail hart %u: direct_link_hit=%llu slow_link_hit=%llu link_exit=%llu budget_exit=%llu boundary_exit=%llu tail_insn=%llu pending_insn=%llu warming_insn=%llu",
     hart_id,static_cast<unsigned long long>(s.direct_link_hits),static_cast<unsigned long long>(s.slow_link_hits),static_cast<unsigned long long>(s.link_exits),
     static_cast<unsigned long long>(s.budget_exits),static_cast<unsigned long long>(s.boundary_exits),
     static_cast<unsigned long long>(s.tail_instructions),static_cast<unsigned long long>(s.pending_instructions),
     static_cast<unsigned long long>(s.warming_instructions));
-  if(profiling_)RVVM_INFO("JIT sample hart %u: samples=%llu native_samples=%llu cold_samples=%llu lookup_ticks=%llu native_ticks=%llu cold_ticks=%llu resolver_ticks=%llu resolver_samples=%llu sampled_native_insn=%llu sampled_helper_calls=%llu sampled_inline_loads=%llu timer_call_ticks=%llu",
+  if(profiling_)NanoRV_INFO("JIT sample hart %u: samples=%llu native_samples=%llu cold_samples=%llu lookup_ticks=%llu native_ticks=%llu cold_ticks=%llu resolver_ticks=%llu resolver_samples=%llu sampled_native_insn=%llu sampled_helper_calls=%llu sampled_inline_loads=%llu timer_call_ticks=%llu",
     hart_id,static_cast<unsigned long long>(s.timing_samples),static_cast<unsigned long long>(s.native_samples),
     static_cast<unsigned long long>(s.cold_samples),static_cast<unsigned long long>(s.lookup_ticks),
     static_cast<unsigned long long>(s.native_ticks),static_cast<unsigned long long>(s.cold_ticks),

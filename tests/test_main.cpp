@@ -6,7 +6,7 @@
 #include <exception>
 #include <vector>
 
-namespace rvvm::test {
+namespace nanorv::test {
 namespace {
 
 std::vector<TestCase>& registry() {
@@ -25,8 +25,8 @@ Collector& collector() {
 
 } // namespace
 
-const char* trap_cause_name(rvvm::cpu::TrapCause cause) noexcept {
-    return rvvm::cpu::to_string(cause);
+const char* trap_cause_name(nanorv::cpu::TrapCause cause) noexcept {
+    return nanorv::cpu::to_string(cause);
 }
 
 void register_test(const TestCase& test_case) { registry().push_back(test_case); }
@@ -77,11 +77,11 @@ int run_all() {
     return failed == 0 ? 0 : 1;
 }
 
-} // namespace rvvm::test
+} // namespace nanorv::test
 
 int main() {
     // Tests drive the logger through a sink so that expected warnings do not
     // pollute the test output.
-    rvvm::core::set_log_level(rvvm::core::LogLevel::Off);
-    return rvvm::test::run_all();
+    nanorv::core::set_log_level(nanorv::core::LogLevel::Off);
+    return nanorv::test::run_all();
 }

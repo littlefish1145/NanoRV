@@ -3,7 +3,7 @@
 #if defined(_M_X64) || defined(__x86_64__)
 #include <emmintrin.h>
 #endif
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {thread_local HostFpScope* current_scope=nullptr;}
 HostFpScope::HostFpScope() noexcept:previous_(current_scope) {current_scope=this;}
 HostFpScope::~HostFpScope() {

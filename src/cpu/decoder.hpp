@@ -8,7 +8,7 @@
 
 #include "core/types.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 enum class InsnFormat : u8 {
     Unknown = 0,
@@ -60,4 +60,4 @@ constexpr i32 sign_extend_32(u32 value, unsigned bits) noexcept {
     return static_cast<i32>(static_cast<i64>(sign_extend(value, bits)));
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

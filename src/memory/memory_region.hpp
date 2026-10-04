@@ -6,7 +6,7 @@
 
 #include "core/types.hpp"
 
-namespace rvvm::memory {
+namespace nanorv::memory {
 
 enum class Access : u8 {
     Read = 0,
@@ -32,4 +32,4 @@ public:
     virtual bool store(u64 offset, unsigned width_bits, u64 value) noexcept = 0;
 };
 
-} // namespace rvvm::memory
+} // namespace nanorv::memory

@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-namespace rvvm::core {
+namespace nanorv::core {
 
 enum class LogLevel : int {
     Trace = 0,
@@ -28,33 +28,33 @@ using LogSink = void (*)(LogLevel level, std::string_view message, void* user);
 // Installs a sink that receives every record that passes the level filter.
 void set_log_sink(LogSink sink, void* user) noexcept;
 
-// Emits one record. Prefer the RVVM_LOG macros.
+// Emits one record. Prefer the NanoRV_LOG macros.
 void log_emit(LogLevel level, std::string_view message);
 
 #ifdef __GNUC__
-#define RVVM_PRINTF_FORMAT(fmt_index, first_arg) __attribute__((format(printf, fmt_index, first_arg)))
+#define NanoRV_PRINTF_FORMAT(fmt_index, first_arg) __attribute__((format(printf, fmt_index, first_arg)))
 #else
-#define RVVM_PRINTF_FORMAT(fmt_index, first_arg)
+#define NanoRV_PRINTF_FORMAT(fmt_index, first_arg)
 #endif
 
-void log_printf(LogLevel level, const char* format, ...) RVVM_PRINTF_FORMAT(2, 3);
+void log_printf(LogLevel level, const char* format, ...) NanoRV_PRINTF_FORMAT(2, 3);
 
 // Emits an Error record and terminates the process. Reserved for unrecoverable
 // host resource failures (allocation, file mapping); never for guest behaviour.
-[[noreturn]] void log_fatal(const char* format, ...) RVVM_PRINTF_FORMAT(1, 2);
+[[noreturn]] void log_fatal(const char* format, ...) NanoRV_PRINTF_FORMAT(1, 2);
 
-} // namespace rvvm::core
+} // namespace nanorv::core
 
-#define RVVM_LOG(level, ...)                                            \
+#define NanoRV_LOG(level, ...)                                            \
     do {                                                                \
-        if (static_cast<int>(level) >= static_cast<int>(::rvvm::core::log_level())) { \
-            ::rvvm::core::log_printf((level), __VA_ARGS__);              \
+        if (static_cast<int>(level) >= static_cast<int>(::nanorv::core::log_level())) { \
+            ::nanorv::core::log_printf((level), __VA_ARGS__);              \
         }                                                               \
     } while (false)
 
-#define RVVM_TRACE(...) RVVM_LOG(::rvvm::core::LogLevel::Trace, __VA_ARGS__)
-#define RVVM_DEBUG(...) RVVM_LOG(::rvvm::core::LogLevel::Debug, __VA_ARGS__)
-#define RVVM_INFO(...)  RVVM_LOG(::rvvm::core::LogLevel::Info, __VA_ARGS__)
-#define RVVM_WARN(...)  RVVM_LOG(::rvvm::core::LogLevel::Warn, __VA_ARGS__)
-#define RVVM_ERROR(...) RVVM_LOG(::rvvm::core::LogLevel::Error, __VA_ARGS__)
-#define RVVM_FATAL(...) ::rvvm::core::log_fatal(__VA_ARGS__)
+#define NanoRV_TRACE(...) NanoRV_LOG(::nanorv::core::LogLevel::Trace, __VA_ARGS__)
+#define NanoRV_DEBUG(...) NanoRV_LOG(::nanorv::core::LogLevel::Debug, __VA_ARGS__)
+#define NanoRV_INFO(...)  NanoRV_LOG(::nanorv::core::LogLevel::Info, __VA_ARGS__)
+#define NanoRV_WARN(...)  NanoRV_LOG(::nanorv::core::LogLevel::Warn, __VA_ARGS__)
+#define NanoRV_ERROR(...) NanoRV_LOG(::nanorv::core::LogLevel::Error, __VA_ARGS__)
+#define NanoRV_FATAL(...) ::nanorv::core::log_fatal(__VA_ARGS__)

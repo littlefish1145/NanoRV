@@ -13,8 +13,8 @@ try {
     }
     & python scripts/prepare-desktop-initrd.py --output build/debian-desktop-initrd.cpio
     if ($LASTEXITCODE) {throw 'Desktop initrd creation failed'}
-    # QEMU is a provisioning tool only. run-app.ps1 executes the native RVVM CPU.
-    & python scripts/debian_check.py --qemu-wsl --disk $Disk --initrd build/debian-desktop-initrd.cpio --timeout 1800 --log build/desktop-install.log --command rvvm-setup-desktop
+    # QEMU is a provisioning tool only. run-app.ps1 executes the native NanoRV CPU.
+    & python scripts/debian_check.py --qemu-wsl --disk $Disk --initrd build/debian-desktop-initrd.cpio --timeout 1800 --log build/desktop-install.log --command nanorv-setup-desktop
     if ($LASTEXITCODE) {throw 'Desktop package installation failed; see build/desktop-install.log'}
     Write-Host 'Ready: .\run-app.ps1 -App xterm'
 } finally {Pop-Location}

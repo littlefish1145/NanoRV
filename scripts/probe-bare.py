@@ -1,27 +1,27 @@
 """A/B probe for the bare RV64 programs produced by benchmark-bare-qemu.py.
 
-Runs one rvvm.exe configuration per invocation with UART START/DONE timing
+Runs one nanorv.exe configuration per invocation with UART START/DONE timing
 (identical to benchmark-bare-qemu.py) so environment toggles such as
-RVVM_INLINE_LOADS=0 or engine choices can be compared against a saved default.
+NanoRV_INLINE_LOADS=0 or engine choices can be compared against a saved default.
 """
 import argparse,json,os,pathlib,re,subprocess,threading,time
 p=argparse.ArgumentParser()
 p.add_argument('bin',help='bare program .bin from benchmark-bare-qemu.py')
-p.add_argument('--exe',default='build/perf22/bin/Release/rvvm.exe')
-p.add_argument('--qemu',action='store_true',help='run under qemu-system-riscv64 instead of rvvm')
+p.add_argument('--exe',default='build/perf22/bin/Release/nanorv.exe')
+p.add_argument('--qemu',action='store_true',help='run under qemu-system-riscv64 instead of nanorv')
 p.add_argument('--engine',default='jit')
 p.add_argument('--env',action='append',default=[],metavar='K=V',help='extra environment variable')
-p.add_argument('--arg',action='append',default=[],help='extra rvvm.exe argument')
+p.add_argument('--arg',action='append',default=[],help='extra nanorv.exe argument')
 p.add_argument('--rounds',type=int,default=3)
 p.add_argument('--affinity',type=lambda v:int(v,0))
-p.add_argument('--profile',action='store_true',help='set RVVM_PROFILE=1 and keep stderr stats')
+p.add_argument('--profile',action='store_true',help='set NanoRV_PROFILE=1 and keep stderr stats')
 p.add_argument('--expect-x1',help='expected x1 checksum (lowercase hex)')
 a=p.parse_args()
 root=pathlib.Path(__file__).resolve().parent.parent
 env=dict(os.environ)
 for item in a.env:
     key,_,value=item.partition('=');env[key]=value
-if a.profile:env['RVVM_PROFILE']='1'
+if a.profile:env['NanoRV_PROFILE']='1'
 if a.qemu:
     cmd=[str(root/'xpack-qemu-riscv-9.2.4-1/bin/qemu-system-riscv64.exe'),'-machine','virt','-bios','none',
          '-m','1G','-smp','1','-nographic','-monitor','none','-nic','none',
@@ -36,7 +36,7 @@ for round_index in range(a.rounds):
         tail=b''
         while chunk:=os.read(proc.stdout.fileno(),1):
             observed=time.perf_counter();data.extend(chunk);combined=tail+chunk
-            for marker in (b'RVVM_BARE_START\n',b'RVVM_BARE_DONE\n',b'RVVM_BARE_START\r\n',b'RVVM_BARE_DONE\r\n'):
+            for marker in (b'NanoRV_BARE_START\n',b'NanoRV_BARE_DONE\n',b'NanoRV_BARE_START\r\n',b'NanoRV_BARE_DONE\r\n'):
                 if marker in combined:marks.setdefault('start' if b'START' in marker else 'done',observed)
             tail=combined[-80:]
     def read_error():error.append(proc.stderr.read())

@@ -6,8 +6,8 @@
 bits 64
 default rel
 section .text align=16
-global rvvm_code_bytes_equal
-rvvm_code_bytes_equal:
+global nanorv_code_bytes_equal
+nanorv_code_bytes_equal:
     cmp r8,16
     jb .tail
 .vector:
@@ -45,10 +45,10 @@ rvvm_code_bytes_equal:
 ; before returning or entering legacy SSE code. Windows preserves only the
 ; low halves of XMM6-XMM15, none of which this leaf changes.
 align 16
-global rvvm_code_bytes_equal_avx2
-rvvm_code_bytes_equal_avx2:
+global nanorv_code_bytes_equal_avx2
+nanorv_code_bytes_equal_avx2:
     cmp r8,32
-    jb rvvm_code_bytes_equal
+    jb nanorv_code_bytes_equal
 .vector:
     vmovdqu ymm0,[rcx]
     vpcmpeqb ymm0,ymm0,[rdx]
@@ -61,7 +61,7 @@ rvvm_code_bytes_equal_avx2:
     cmp r8,32
     jae .vector
     vzeroupper
-    jmp rvvm_code_bytes_equal
+    jmp nanorv_code_bytes_equal
 .different:
     vzeroupper
     xor eax,eax

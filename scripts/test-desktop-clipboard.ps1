@@ -26,12 +26,12 @@ if ($original) {
     }
 }
 try {
-    $fromWindows='RVVM Windows clipboard'
+    $fromWindows='NanoRV Windows clipboard'
     [Windows.Forms.Clipboard]::SetText($fromWindows)
-    $app=Request '/launch' @{app='xterm';args=@('-e','/bin/sh','-c','test "$(xclip -selection clipboard -o)" = "RVVM Windows clipboard"')}
+    $app=Request '/launch' @{app='xterm';args=@('-e','/bin/sh','-c','test "$(xclip -selection clipboard -o)" = "NanoRV Windows clipboard"')}
     Wait-App $app.pid
     Write-Output 'Windows to Linux clipboard: PASS'
-    $fromLinux='RVVM '+[char]0x4e2d+[char]0x6587+' clipboard'
+    $fromLinux='NanoRV '+[char]0x4e2d+[char]0x6587+' clipboard'
     $command="printf '%s' '$fromLinux' | xclip -selection clipboard; sleep 1"
     $app=Request '/launch' @{app='xterm';args=@('-e','/bin/sh','-c',$command)}
     $deadline=[DateTime]::UtcNow.AddSeconds(90)

@@ -12,7 +12,7 @@
 
 #include "cpu/execute.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 // True when `insn` is an opcode 0x2f encoding. The funct5/funct3 validity check
 // happens in execute_atomic so unsupported encodings raise an
@@ -26,4 +26,4 @@ bool execute_atomic(Hart& hart, const memory::AddressSpace& memory, const Decode
 // encoding is not defined by RV64A.
 const char* atomic_mnemonic(const Decoded& insn) noexcept;
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

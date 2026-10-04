@@ -5,9 +5,9 @@
 #include "mmu/mmu.hpp"
 #include "test_framework.hpp"
 #include "test_helpers.hpp"
-using namespace rvvm;
-using namespace rvvm::cpu;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::cpu;
+using namespace nanorv::test;
 namespace {
 bool exec(CpuFixture &c, u32 raw) {
   c.hart.next_pc = c.hart.pc + 4;

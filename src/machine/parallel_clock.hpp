@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 
-namespace rvvm::machine {
+namespace nanorv::machine {
 // Parallel CPUs share one clock. Parked CPUs must not slow a busy CPU's time;
 // sample deltas also avoid stalling when execution migrates to another hart.
 class ParallelClock {

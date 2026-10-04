@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 #include "core/types.hpp"
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 bool host_fp(unsigned fn,bool dbl,unsigned rounding,u64 a,u64 b,u64& result,u8& flags) noexcept;
 void host_fp_clear_exceptions() noexcept;
 // Lazy per-native-chain floating point environment. Integer-only chains never

@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-using namespace rvvm;
+using namespace nanorv;
 namespace {
 u32 op_i(i32 imm,u32 a,u32 f,u32 dst) {return ((static_cast<u32>(imm)&4095)<<20)|(a<<15)|(f<<12)|(dst<<7)|0x13;}
 u32 op_r(u32 a,u32 b,u32 f,u32 dst) {return (b<<20)|(a<<15)|(f<<12)|(dst<<7)|0x33;}
@@ -30,7 +30,7 @@ void snapshot(const std::filesystem::path& path,std::span<const u8> code) {
 }
 int main(int argc,char** argv) {
   try {
-    if(argc!=2) {std::cerr<<"Usage: rvvm_jit_inspect OUTPUT_DIRECTORY\n";return 1;}
+    if(argc!=2) {std::cerr<<"Usage: nanorv_jit_inspect OUTPUT_DIRECTORY\n";return 1;}
     const std::filesystem::path directory=argv[1];std::filesystem::create_directories(directory);
     for(const std::string name:{"three-operand-add","three-operand-bitwise","memory","store","self-loop-fusible","register-pressure"}) {
       std::vector<cpu::CachedInstruction> instructions;

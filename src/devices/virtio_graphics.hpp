@@ -5,7 +5,7 @@
 #include "platform/renderer.hpp"
 #include <unordered_map>
 #include <unordered_set>
-namespace rvvm::devices {
+namespace nanorv::devices {
 class VirtioGpu final : public VirtioMmio {
 public:
   VirtioGpu(memory::AddressSpace&,platform::Display&);

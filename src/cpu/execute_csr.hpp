@@ -11,7 +11,7 @@
 
 #include "cpu/execute.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 // True when `insn` is a Zicsr encoding. funct3 == 0b100 is reserved and is
 // rejected inside execute_csr so that it raises an illegal-instruction trap.
@@ -22,4 +22,4 @@ bool execute_csr(Hart& hart, const Decoded& insn, Trap& trap) noexcept;
 // Mnemonic for the disassembler.
 const char* csr_mnemonic(const Decoded& insn) noexcept;
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

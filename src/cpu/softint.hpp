@@ -9,7 +9,7 @@
 
 #include "core/types.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 struct WideProduct {
     u64 low = 0;
@@ -109,4 +109,4 @@ constexpr u64 sext32_to_64(u64 value) noexcept {
 
 constexpr u64 zext32(u64 value) noexcept { return static_cast<u32>(value); }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

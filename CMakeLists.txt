@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(RVVM
+project(NanoRV
     VERSION 0.9.0
     DESCRIPTION "Windows-native high performance RISC-V (RV64GC) virtual machine"
     LANGUAGES C CXX)
@@ -9,19 +9,19 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(RVVM_WERROR       "Treat compiler warnings as errors" OFF)
-option(RVVM_BUILD_TESTS "Build the unit test suite"        ON)
-option(RVVM_ASAN         "Enable address sanitizer (debug only)" OFF)
-option(RVVM_NASM_HELPERS "Use optional Windows x64 SSE2/AVX2 assembly helpers" ON)
+option(NanoRV_WERROR       "Treat compiler warnings as errors" OFF)
+option(NanoRV_BUILD_TESTS "Build the unit test suite"        ON)
+option(NanoRV_ASAN         "Enable address sanitizer (debug only)" OFF)
+option(NanoRV_NASM_HELPERS "Use optional Windows x64 SSE2/AVX2 assembly helpers" ON)
 
-if(RVVM_NASM_HELPERS AND WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-    find_program(RVVM_NASM_EXECUTABLE nasm HINTS "D:/NASM")
-    if(RVVM_NASM_EXECUTABLE)
-        set(CMAKE_ASM_NASM_COMPILER "${RVVM_NASM_EXECUTABLE}")
+if(NanoRV_NASM_HELPERS AND WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    find_program(NanoRV_NASM_EXECUTABLE nasm HINTS "D:/NASM")
+    if(NanoRV_NASM_EXECUTABLE)
+        set(CMAKE_ASM_NASM_COMPILER "${NanoRV_NASM_EXECUTABLE}")
         set(CMAKE_ASM_NASM_OBJECT_FORMAT win64)
         enable_language(ASM_NASM)
-        add_library(rvvm_native_helpers STATIC src/platform/windows/code_compare.asm)
-        set_target_properties(rvvm_native_helpers PROPERTIES LINKER_LANGUAGE CXX)
+        add_library(nanorv_native_helpers STATIC src/platform/windows/code_compare.asm)
+        set_target_properties(nanorv_native_helpers PROPERTIES LINKER_LANGUAGE CXX)
     endif()
 endif()
 
@@ -32,11 +32,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 # ---------------------------------------------------------------------------
 # Warning configuration (MSVC and clang-cl)
 # ---------------------------------------------------------------------------
-add_library(rvvm_warnings INTERFACE)
-target_compile_features(rvvm_warnings INTERFACE cxx_std_23)
+add_library(nanorv_warnings INTERFACE)
+target_compile_features(nanorv_warnings INTERFACE cxx_std_23)
 
 if(MSVC)
-    target_compile_options(rvvm_warnings INTERFACE
+    target_compile_options(nanorv_warnings INTERFACE
         /W4
         /permissive-
         /Zc:__cplusplus
@@ -47,7 +47,7 @@ if(MSVC)
         /wd4996   # we implement <stdexcept>-free error paths on purpose
     )
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(rvvm_warnings INTERFACE /Zc:preprocessor /MP)
+        target_compile_options(nanorv_warnings INTERFACE /Zc:preprocessor /MP)
     else()
         # clang-cl ships its own preprocessor and build driver options.
         #
@@ -55,30 +55,30 @@ if(MSVC)
         # clang-cl releases. The project only relies on stable, standard library
         # facilities, so the mismatch check is explicitly opted out of; drop this
         # once clang 19+ is the baseline.
-        target_compile_definitions(rvvm_warnings INTERFACE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)
+        target_compile_definitions(nanorv_warnings INTERFACE _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)
     endif()
-    if(RVVM_WERROR)
-        target_compile_options(rvvm_warnings INTERFACE /WX)
+    if(NanoRV_WERROR)
+        target_compile_options(nanorv_warnings INTERFACE /WX)
     endif()
-    if(RVVM_ASAN)
-        target_compile_options(rvvm_warnings INTERFACE /fsanitize=address)
-        target_link_options(rvvm_warnings INTERFACE /fsanitize=address)
+    if(NanoRV_ASAN)
+        target_compile_options(nanorv_warnings INTERFACE /fsanitize=address)
+        target_link_options(nanorv_warnings INTERFACE /fsanitize=address)
     endif()
 else()
-    target_compile_options(rvvm_warnings INTERFACE
+    target_compile_options(nanorv_warnings INTERFACE
         -Wall -Wextra -Wpedantic
         -Wshadow -Wconversion -Wsign-conversion
         -Wno-unused-parameter
     )
-    if(RVVM_WERROR)
-        target_compile_options(rvvm_warnings INTERFACE -Werror)
+    if(NanoRV_WERROR)
+        target_compile_options(nanorv_warnings INTERFACE -Werror)
     endif()
 endif()
 
 # ---------------------------------------------------------------------------
-# rvvm_core : all machine logic, zero Win32 dependencies
+# nanorv_core : all machine logic, zero Win32 dependencies
 # ---------------------------------------------------------------------------
-add_library(rvvm_core STATIC
+add_library(nanorv_core STATIC
     src/core/log.cpp
     src/core/elf_loader.cpp
     src/cpu/csr.cpp
@@ -119,45 +119,45 @@ add_library(rvvm_core STATIC
     src/platform/code_compare.cpp
 )
 
-if(TARGET rvvm_native_helpers)
-    target_compile_definitions(rvvm_core PRIVATE RVVM_NASM_HELPERS=1)
-    target_link_libraries(rvvm_core PRIVATE rvvm_native_helpers)
+if(TARGET nanorv_native_helpers)
+    target_compile_definitions(nanorv_core PRIVATE NanoRV_NASM_HELPERS=1)
+    target_link_libraries(nanorv_core PRIVATE nanorv_native_helpers)
 endif()
-target_include_directories(rvvm_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_include_directories(rvvm_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libslirp/ucrt64/include/slirp")
-target_include_directories(rvvm_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/virgl/ucrt64/include/virgl")
-target_include_directories(rvvm_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/vulkan-headers/include")
-target_link_libraries(rvvm_core PRIVATE ws2_32 user32 gdi32 opengl32)
-target_link_libraries(rvvm_core PUBLIC rvvm_warnings)
+target_include_directories(nanorv_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(nanorv_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libslirp/ucrt64/include/slirp")
+target_include_directories(nanorv_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/virgl/ucrt64/include/virgl")
+target_include_directories(nanorv_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/vulkan-headers/include")
+target_link_libraries(nanorv_core PRIVATE ws2_32 user32 gdi32 opengl32)
+target_link_libraries(nanorv_core PUBLIC nanorv_warnings)
 if(MSVC)
     set_source_files_properties(src/cpu/host_fp.cpp PROPERTIES COMPILE_OPTIONS "/fp:strict")
 endif()
 add_subdirectory(third_party/softfloat)
-target_link_libraries(rvvm_core PUBLIC rvvm_softfloat)
+target_link_libraries(nanorv_core PUBLIC nanorv_softfloat)
 
 # ---------------------------------------------------------------------------
-# rvvm : the virtual machine executable
+# nanorv : the virtual machine executable
 # ---------------------------------------------------------------------------
-add_executable(rvvm src/main.cpp)
-target_link_libraries(rvvm PRIVATE rvvm_core)
+add_executable(nanorv src/main.cpp)
+target_link_libraries(nanorv PRIVATE nanorv_core)
 if(MSVC)
     # A linker map adds no instrumentation or runtime overhead. It allows the
     # short live sampler to identify C++ hotspots in the exact shipped binary.
-    target_link_options(rvvm PRIVATE "/MAP:$<TARGET_FILE_DIR:rvvm>/rvvm.map")
+    target_link_options(nanorv PRIVATE "/MAP:$<TARGET_FILE_DIR:nanorv>/nanorv.map")
 endif()
 
 # C++ whole-program optimization allows hot MMU/RAM helpers to inline across
 # translation units. Debug/ASan stay local.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set_property(TARGET rvvm_core rvvm PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    set_property(TARGET nanorv_core nanorv PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 endif()
 
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
-if(RVVM_BUILD_TESTS)
+if(NanoRV_BUILD_TESTS)
     enable_testing()
-    add_executable(rvvm_tests
+    add_executable(nanorv_tests
         tests/test_main.cpp
         tests/test_log.cpp
         tests/test_address_space.cpp
@@ -180,22 +180,22 @@ if(RVVM_BUILD_TESTS)
         tests/test_extensions.cpp
         tests/test_graphics.cpp
     )
-    target_include_directories(rvvm_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-    target_link_libraries(rvvm_tests PRIVATE rvvm_core)
+    target_include_directories(nanorv_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+    target_link_libraries(nanorv_tests PRIVATE nanorv_core)
     if(MSVC)
         # The assertion macros intentionally compare constant expressions.
-        target_compile_options(rvvm_tests PRIVATE /wd4127)
+        target_compile_options(nanorv_tests PRIVATE /wd4127)
     endif()
-    add_test(NAME rvvm_tests COMMAND rvvm_tests)
-    set_tests_properties(rvvm_tests PROPERTIES WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-    add_executable(rvvm_compare_benchmark scripts/benchmark-code-compare.cpp)
-    target_link_libraries(rvvm_compare_benchmark PRIVATE rvvm_core)
-    add_executable(rvvm_jit_inspect scripts/inspect-jit-code.cpp)
-    target_link_libraries(rvvm_jit_inspect PRIVATE rvvm_core)
+    add_test(NAME nanorv_tests COMMAND nanorv_tests)
+    set_tests_properties(nanorv_tests PROPERTIES WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+    add_executable(nanorv_compare_benchmark scripts/benchmark-code-compare.cpp)
+    target_link_libraries(nanorv_compare_benchmark PRIVATE nanorv_core)
+    add_executable(nanorv_jit_inspect scripts/inspect-jit-code.cpp)
+    target_link_libraries(nanorv_jit_inspect PRIVATE nanorv_core)
 endif()
 
-message(STATUS "RVVM ${PROJECT_VERSION}")
+message(STATUS "NanoRV ${PROJECT_VERSION}")
 message(STATUS "  compiler      : ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "  build type    : ${CMAKE_BUILD_TYPE}")
-message(STATUS "  tests         : ${RVVM_BUILD_TESTS}")
-message(STATUS "  warnings as err: ${RVVM_WERROR}")
+message(STATUS "  tests         : ${NanoRV_BUILD_TESTS}")
+message(STATUS "  warnings as err: ${NanoRV_WERROR}")

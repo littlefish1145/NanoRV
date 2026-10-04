@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace rvvm::machine {
+namespace nanorv::machine {
 
 enum class StopReason {
     None,
@@ -74,7 +74,7 @@ private:
     memory::AddressSpace memory_;
     std::unique_ptr<memory::RamRegion> ram_;
     std::vector<cpu::Hart> harts_;
-    u64 entry_ = rvvm::kDramBase;
+    u64 entry_ = nanorv::kDramBase;
     bool loaded_ = false;
     devices::Uart uart_;
     devices::Clint clint_;
@@ -93,4 +93,4 @@ private:
     cpu::BlockEngine engine_;
 };
 
-} // namespace rvvm::machine
+} // namespace nanorv::machine

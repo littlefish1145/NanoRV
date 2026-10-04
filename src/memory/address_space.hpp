@@ -17,7 +17,7 @@
 #include <mutex>
 #include <cstring>
 
-namespace rvvm::memory {
+namespace nanorv::memory {
 
 struct Permissions {
     bool read = true;
@@ -199,4 +199,4 @@ private:
     MmioDispatch mmio_dispatch_=nullptr;
 };
 
-} // namespace rvvm::memory
+} // namespace nanorv::memory

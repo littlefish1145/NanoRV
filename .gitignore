@@ -1,5 +1,6 @@
 build/
 out/
+docs/
 .vs/
 .vscode/
 *.user
@@ -9,3 +10,23 @@ CMakeUserPresets.json
 *.pdb
 *.ilk
 *.exe
+__pycache__/
+*.pyc
+
+# Guest disk images, kernel and initramfs are produced locally by
+# scripts/prepare-debian.ps1 and must never enter the repository.
+assets/*.raw
+assets/*.cpio
+assets/*.img
+assets/*.gz
+assets/linux
+assets/debian-*.tar.xz
+assets/debian-SHA512SUMS
+
+# Toolchains and vendored binaries that are installed or downloaded separately.
+xpack-riscv-none-elf-gcc-*/
+xpack-qemu-riscv-*/
+third_party/vcxsrv/
+
+# Guest test binaries are built by scripts/build.ps1.
+examples/*.elf

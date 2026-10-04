@@ -6,22 +6,22 @@
 #include <algorithm>
 #include <cstring>
 
-namespace rvvm::memory {
+namespace nanorv::memory {
 
 bool AddressSpace::add(u64 base, u64 size, MemoryRegion* region, std::string name,
                        Permissions permissions) {
     if (region == nullptr || size == 0) {
-        RVVM_ERROR("address space: refusing to add region '%s' (size=%llu, region=%p)", name.c_str(),
+        NanoRV_ERROR("address space: refusing to add region '%s' (size=%llu, region=%p)", name.c_str(),
                    static_cast<unsigned long long>(size), static_cast<const void*>(region));
         return false;
     }
     if (base + size < base) { // wraps the address space
-        RVVM_ERROR("address space: region '%s' wraps the address space", name.c_str());
+        NanoRV_ERROR("address space: region '%s' wraps the address space", name.c_str());
         return false;
     }
     for (const auto& existing : regions_) {
         if (base < existing.base + existing.size && existing.base < base + size) {
-            RVVM_ERROR("address space: region '%s' [%016llx, %016llx) overlaps '%s' [%016llx, %016llx)",
+            NanoRV_ERROR("address space: region '%s' [%016llx, %016llx) overlaps '%s' [%016llx, %016llx)",
                        name.c_str(), static_cast<unsigned long long>(base),
                        static_cast<unsigned long long>(base + size), existing.name.c_str(),
                        static_cast<unsigned long long>(existing.base),
@@ -52,7 +52,7 @@ bool AddressSpace::add(u64 base, u64 size, MemoryRegion* region, std::string nam
         if(last-first>=4096)continue;
         for(u64 page=first;page<=last;++page)mmio_pages_[(page^(page>>12))&4095]={page,&mapped};
     }
-    RVVM_DEBUG("address space: mapped '%s' at [%016llx, %016llx)", entry.name.c_str(),
+    NanoRV_DEBUG("address space: mapped '%s' at [%016llx, %016llx)", entry.name.c_str(),
                static_cast<unsigned long long>(entry.base),
                static_cast<unsigned long long>(entry.base + entry.size));
     return true;
@@ -101,7 +101,7 @@ MemoryRegion* AddressSpace::find(u64 phys, u64& offset, u64 required_bytes) cons
 
 bool AddressSpace::load(u64 phys, unsigned width_bits, u64& value, bool for_exec) const noexcept {
     if (width_bits != 8 && width_bits != 16 && width_bits != 32 && width_bits != 64) {
-        RVVM_ERROR("address space: unsupported load width %u at 0x%016llx", width_bits,
+        NanoRV_ERROR("address space: unsupported load width %u at 0x%016llx", width_bits,
                    static_cast<unsigned long long>(phys));
         return false;
     }
@@ -117,12 +117,12 @@ bool AddressSpace::load(u64 phys, unsigned width_bits, u64& value, bool for_exec
     u64 offset = 0;
     const RegionEntry* const entry = find_entry(phys, offset, width_bits / 8);
     if (entry == nullptr) {
-        RVVM_ERROR("address space: unmapped %u-bit load at 0x%016llx", width_bits,
+        NanoRV_ERROR("address space: unmapped %u-bit load at 0x%016llx", width_bits,
                    static_cast<unsigned long long>(phys));
         return false;
     }
     if (!entry->permissions.read || (for_exec && !entry->permissions.execute)) {
-        RVVM_ERROR("address space: %u-bit load at 0x%016llx denied by '%s' permissions", width_bits,
+        NanoRV_ERROR("address space: %u-bit load at 0x%016llx denied by '%s' permissions", width_bits,
                    static_cast<unsigned long long>(phys), entry->name.c_str());
         return false;
     }
@@ -132,7 +132,7 @@ bool AddressSpace::load(u64 phys, unsigned width_bits, u64& value, bool for_exec
 
 bool AddressSpace::store(u64 phys, unsigned width_bits, u64 value) const noexcept {
     if (width_bits != 8 && width_bits != 16 && width_bits != 32 && width_bits != 64) {
-        RVVM_ERROR("address space: unsupported store width %u at 0x%016llx", width_bits,
+        NanoRV_ERROR("address space: unsupported store width %u at 0x%016llx", width_bits,
                    static_cast<unsigned long long>(phys));
         return false;
     }
@@ -148,12 +148,12 @@ bool AddressSpace::store(u64 phys, unsigned width_bits, u64 value) const noexcep
     u64 offset = 0;
     const RegionEntry* const entry = find_entry(phys, offset, width_bits / 8);
     if (entry == nullptr) {
-        RVVM_ERROR("address space: unmapped %u-bit store at 0x%016llx", width_bits,
+        NanoRV_ERROR("address space: unmapped %u-bit store at 0x%016llx", width_bits,
                    static_cast<unsigned long long>(phys));
         return false;
     }
     if (!entry->permissions.write) {
-        RVVM_ERROR("address space: %u-bit store at 0x%016llx denied by '%s' permissions", width_bits,
+        NanoRV_ERROR("address space: %u-bit store at 0x%016llx denied by '%s' permissions", width_bits,
                    static_cast<unsigned long long>(phys), entry->name.c_str());
         return false;
     }
@@ -354,4 +354,4 @@ void AddressSpace::notify_dma_write(u64 address,u64 bytes) const noexcept {
     }
     notify_write(address,bytes);
 }
-} // namespace rvvm::memory
+} // namespace nanorv::memory

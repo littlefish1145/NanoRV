@@ -11,7 +11,7 @@
 #include <array>
 #include <cstring>
 #include <algorithm>
-namespace rvvm::platform {
+namespace nanorv::platform {
 struct Display::Impl {
   std::mutex mutex;std::condition_variable started;
   std::thread thread;std::atomic<HWND> window{nullptr};
@@ -46,7 +46,7 @@ struct Display::Impl {
       if(s->vulkan && frame) {
         std::string error;
         if(!s->vulkan->present(frame->width,frame->height,frame->pixels,error)) {
-          RVVM_ERROR("Vulkan presentation failed: %s; switching to GDI",error.c_str());
+          NanoRV_ERROR("Vulkan presentation failed: %s; switching to GDI",error.c_str());
           s->vulkan.reset();std::lock_guard lock(s->mutex);s->backend_name="GDI (Vulkan runtime failure)";
         }
       }
@@ -115,9 +115,9 @@ bool Display::open(bool visible,std::string& error,DisplayBackend backend,HostGp
   std::string startup_error;
   s.thread=std::thread([&s,backend,gpu,&startup_error] {
     const auto instance=GetModuleHandleW(nullptr);
-    WNDCLASSW wc{};wc.lpfnWndProc=Impl::procedure;wc.hInstance=instance;wc.lpszClassName=L"RVVMDisplay";wc.hCursor=LoadCursorW(nullptr,MAKEINTRESOURCEW(32512));
+    WNDCLASSW wc{};wc.lpfnWndProc=Impl::procedure;wc.hInstance=instance;wc.lpszClassName=L"NanoRVDisplay";wc.hCursor=LoadCursorW(nullptr,MAKEINTRESOURCEW(32512));
     RegisterClassW(&wc);
-    HWND hwnd=CreateWindowExW(0,wc.lpszClassName,L"RVVM Debian — keyboard/mouse",WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,816,639,nullptr,nullptr,instance,&s);
+    HWND hwnd=CreateWindowExW(0,wc.lpszClassName,L"NanoRV Debian — keyboard/mouse",WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,816,639,nullptr,nullptr,instance,&s);
     s.window=hwnd;
     bool success=hwnd!=nullptr;
     if(success && backend!=DisplayBackend::Gdi) {
@@ -125,7 +125,7 @@ bool Display::open(bool visible,std::string& error,DisplayBackend backend,HostGp
       if(!s.vulkan->open(hwnd,gpu,startup_error)) {
         s.vulkan.reset();
         if(backend==DisplayBackend::Vulkan)success=false;
-        else RVVM_WARN("Vulkan unavailable: %s; using GDI",startup_error.c_str());
+        else NanoRV_WARN("Vulkan unavailable: %s; using GDI",startup_error.c_str());
       }
     }
     s.backend_name=s.vulkan?"Vulkan / "+s.vulkan->description():"GDI";

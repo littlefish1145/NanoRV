@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace rvvm {
+namespace nanorv {
 
 using u8 = std::uint8_t;
 using u16 = std::uint16_t;
@@ -43,4 +43,4 @@ constexpr u64 round_up_pow2(u64 value, u64 alignment) noexcept {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
-} // namespace rvvm
+} // namespace nanorv

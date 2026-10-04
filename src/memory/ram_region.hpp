@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace rvvm::memory {
+namespace nanorv::memory {
 
 class RamRegion final : public MemoryRegion {
 public:
@@ -41,4 +41,4 @@ private:
     std::uint8_t* data_ = nullptr;
 };
 
-} // namespace rvvm::memory
+} // namespace nanorv::memory

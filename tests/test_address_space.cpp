@@ -5,8 +5,8 @@
 
 #include <array>
 
-using namespace rvvm;
-using namespace rvvm::memory;
+using namespace nanorv;
+using namespace nanorv::memory;
 
 namespace {
 

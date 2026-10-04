@@ -7,8 +7,8 @@ must agree. No guest-clock scores or QEMU icount timing are used.
 import argparse,hashlib,json,pathlib,re,statistics,struct,subprocess,threading,time
 from host_affinity import apply_affinity
 p=argparse.ArgumentParser()
-p.add_argument('--exe',default='build/vulkan17/bin/Release/rvvm.exe')
-p.add_argument('--baseline-exe',help='include the previous RVVM executable in the alternating runs')
+p.add_argument('--exe',default='build/vulkan17/bin/Release/nanorv.exe')
+p.add_argument('--baseline-exe',help='include the previous NanoRV executable in the alternating runs')
 p.add_argument('--iterations',type=int,default=8000000)
 p.add_argument('--rounds',type=int,default=3)
 p.add_argument('--affinity',type=lambda v:int(v,0))
@@ -34,7 +34,7 @@ programs={'fusible-add':[i(1,1,0,1)]*30,
           'mixed-dependent':[i(17,1,0,1),r(2,1,4,1),i(3,2,1,2),r(1,2,0,2),i(1,1,5,1),i(-17,2,7,2)]*5,
           'memory-dependent':[i(0,10,3,1,3),i(1,1,0,1),s(1,10,3)]*10}
 records=[]
-backends={'rvvm':root/a.exe,'qemu':root/'xpack-qemu-riscv-9.2.4-1/bin/qemu-system-riscv64.exe'}
+backends={'nanorv':root/a.exe,'qemu':root/'xpack-qemu-riscv-9.2.4-1/bin/qemu-system-riscv64.exe'}
 if a.baseline_exe:backends={'baseline':root/a.baseline_exe,**backends}
 for name,body in programs.items():
     iterations=a.iterations*(16 if name=='fusible-add' else 4 if name=='mixed-dependent' else 1)
@@ -43,10 +43,10 @@ for name,body in programs.items():
     words=[(16<<12)|(10<<7)|0x17,i(1,0,0,1),i(7,0,0,2),i(13,0,0,3),(0x10000<<12)|(28<<7)|0x37]
     hi=(iterations+2048)>>12;lo=iterations-(hi<<12)
     words.extend([(hi<<12)|(30<<7)|0x37,i(lo,30,0,30)])
-    uart(words,'\nRVVM_BARE_START\n')
+    uart(words,'\nNanoRV_BARE_START\n')
     start=len(words)
     words.extend(body);words.append(i(-1,30,0,30));words.append(b((start-len(words))*4,0,30,1))
-    uart(words,'\nRVVM_BARE_DONE\n')
+    uart(words,'\nNanoRV_BARE_DONE\n')
     uart(words,'CHECKSUM=')
     for reg in (1,2,3):
         for shift in range(60,-1,-4):
@@ -75,7 +75,7 @@ for name,body in programs.items():
                 # observations even when a fast JIT produces very little UART.
                 while chunk:=os.read(proc.stdout.fileno(),1):
                     observed=time.perf_counter();data.extend(chunk);combined=tail+chunk
-                    for marker in [b'RVVM_BARE_START\r\n',b'RVVM_BARE_DONE\r\n',b'RVVM_BARE_START\n',b'RVVM_BARE_DONE\n']:
+                    for marker in [b'NanoRV_BARE_START\r\n',b'NanoRV_BARE_DONE\r\n',b'NanoRV_BARE_START\n',b'NanoRV_BARE_DONE\n']:
                         if marker in combined:marks.setdefault('start' if b'START' in marker else 'done',observed)
                     tail=combined[-80:]
             def read_error():error.append(proc.stderr.read())
@@ -97,14 +97,14 @@ for name,body in programs.items():
             if name=='fusible-add' and int(values[0],16)!=1+30*iterations:raise RuntimeError('arithmetic result mismatch')
             if name=='memory-dependent' and int(values[0],16)!=10*iterations:raise RuntimeError('memory result mismatch')
             seconds=marks['done']-marks['start']
-            if seconds<a.min_seconds:raise RuntimeError('workload timing is too short or UART output is buffered; increase iterations or use an RVVM build with line flushing')
+            if seconds<a.min_seconds:raise RuntimeError('workload timing is too short or UART output is buffered; increase iterations or use an NanoRV build with line flushing')
             instructions=iterations*(len(body)+2)
             record={'program':name,'backend':backend,'round':round_index+1,'seconds':seconds,
                     'guest_work_instructions':instructions,'ips':instructions/seconds,'checksum':values}
             records.append(record);print(json.dumps(record),flush=True)
 summary={name:{backend:statistics.median(r['seconds'] for r in records if r['program']==name and r['backend']==backend)
                for backend in backends} for name in programs}
-fractions={name:values['qemu']/values['rvvm'] for name,values in summary.items()}
+fractions={name:values['qemu']/values['nanorv'] for name,values in summary.items()}
 passed=a.require_qemu_fraction is None or all(value>=a.require_qemu_fraction for value in fractions.values())
 (root/(a.prefix+'.json')).write_text(json.dumps({'iterations':a.iterations,'rounds':a.rounds,
     'timing':'host START/DONE UART arrival','affinity':hex(a.affinity) if a.affinity else None,

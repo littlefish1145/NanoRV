@@ -2,7 +2,7 @@
 #include "mmu/mmu.hpp"
 #include <bit>
 #include <cstring>
-namespace rvvm::mmu {
+namespace nanorv::mmu {
 using namespace cpu;
 namespace {
 Privilege effective(const Hart &h, memory::Access a) {
@@ -219,4 +219,4 @@ bool store(Hart &h, const memory::AddressSpace &bus, u64 va, unsigned width,
   }
   return true;
 }
-} // namespace rvvm::mmu
+} // namespace nanorv::mmu

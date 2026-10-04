@@ -7,9 +7,9 @@
 #include "test_framework.hpp"
 #include "test_helpers.hpp"
 
-using namespace rvvm;
-using namespace rvvm::cpu;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::cpu;
+using namespace nanorv::test;
 
 namespace {
 

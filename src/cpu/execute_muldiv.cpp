@@ -9,7 +9,7 @@
 #include "cpu/softint.hpp"
 #include "core/log.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 
 // funct3 -> mnemonic, shared by the disassembler and the log messages.
@@ -112,4 +112,4 @@ const char* muldiv_mnemonic(const Decoded& insn) noexcept {
     return muldiv_name(insn.funct3, insn.opcode == 0x3b);
 }
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

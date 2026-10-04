@@ -23,7 +23,7 @@ void main_start(u64* stack) {
   int automatic=0;
   if(stack[0]>1) {const char* p=(const char*)stack[2];automatic=p[0]=='-' && p[1]=='-' && p[2]=='t';}
   int fd=openfile("/dev/fb0",2);u32 variable[40]={0};unsigned char fixed[80]={0};
-  if(fd<0 || call(29,fd,0x4600,(i64)variable,0,0,0)<0 || call(29,fd,0x4602,(i64)fixed,0,0,0)<0 || variable[6]!=32 || variable[9]!=8 || variable[12]!=8 || variable[15]!=8) {text("RVVM: 32-bit Linux framebuffer unavailable\n");quit(1);}
+  if(fd<0 || call(29,fd,0x4600,(i64)variable,0,0,0)<0 || call(29,fd,0x4602,(i64)fixed,0,0,0)<0 || variable[6]!=32 || variable[9]!=8 || variable[12]!=8 || variable[15]!=8) {text("NanoRV: 32-bit Linux framebuffer unavailable\n");quit(1);}
   width=(int)variable[0];height=(int)variable[1];pitch=*(u32*)(fixed+48)/4;red=variable[8];green=variable[11];blue=variable[14];
   if(width<320 || height<240 || width>4096 || height>4096 || pitch<width)quit(1);
   pixels=(u32*)call(222,0,(i64)pitch*height*4,3,1,fd,0);
@@ -36,8 +36,8 @@ void main_start(u64* stack) {
     unsigned char name[128]={0};call(29,candidate,0x80804506,(i64)name,0,0,0);
     if(name[0]=='R' && name[1]=='V' && name[2]=='V') {input=candidate;break;}call(57,candidate,0,0,0,0,0);
   }
-  if(input<0 && !automatic) {text("RVVM: keyboard evdev unavailable\n");quit(1);}
-  text("RVVM Breakout: Left/Right or A/D, Esc exits. Click the RVVM display first.\n");
+  if(input<0 && !automatic) {text("NanoRV: keyboard evdev unavailable\n");quit(1);}
+  text("NanoRV Breakout: Left/Right or A/D, Esc exits. Click the NanoRV display first.\n");
   rect(0,0,width,height,0);rect(0,0,width,6,color(80,120,180));rect(0,0,6,height,color(80,120,180));rect(width-6,0,6,height,color(80,120,180));wall();
   int paddle=width/2-50,x=width/2,y=height/2,vx=4,vy=-4,left=0,right=0,score=0,frames=0,lives=3;
   const u32 ball=color(250,250,250),bat=color(60,200,255);struct {i64 sec,nsec;} delay={0,16666666};
@@ -65,6 +65,6 @@ hit:
     call(101,(i64)&delay,0,0,0,0,0);
   }
 done:
-  text("RVVM_GAME_OK frames=");number(frames);text(" score=");number(score);text("\n");quit(automatic && score==0?1:0);
+  text("NanoRV_GAME_OK frames=");number(frames);text(" score=");number(score);text("\n");quit(automatic && score==0?1:0);
 }
 __asm__(".section .text.start\n.global _start\n_start:\n.option push\n.option norelax\n la gp,__global_pointer$\n.option pop\n mv a0,sp\n call main_start\n");

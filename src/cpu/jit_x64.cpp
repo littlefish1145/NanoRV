@@ -10,7 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 template<class T> std::size_t hart_offset(T Hart::* member) {
   // Hart contains non-standard-layout CSR storage. Compute offsets from a

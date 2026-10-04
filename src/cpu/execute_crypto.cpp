@@ -5,11 +5,11 @@
 #if defined(_M_X64)
 #include <intrin.h>
 #include <wmmintrin.h>
-#define RVVM_CRYPTO_X64 1
+#define NanoRV_CRYPTO_X64 1
 #else
-#define RVVM_CRYPTO_X64 0
+#define NanoRV_CRYPTO_X64 0
 #endif
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 namespace {
 u8 multiply(u8 a,u8 b) {
   u8 result=0;
@@ -39,7 +39,7 @@ u32 mix(u32 v,bool decrypt) {
   }
   return out;
 }
-#if RVVM_CRYPTO_X64
+#if NanoRV_CRYPTO_X64
 unsigned host_features() {static const unsigned flags=[] {int values[4]{};__cpuid(values,1);return static_cast<unsigned>(values[2]);}();return flags;}
 #if defined(__clang__)
 #define TARGET_CRYPTO __attribute__((target("aes,pclmul")))
@@ -60,7 +60,7 @@ TARGET_CRYPTO u64 accelerated_carryless(unsigned fn,u64 a,u64 b) {
 }
 #endif
 u32 subword(u32 value,bool native) {
-#if RVVM_CRYPTO_X64
+#if NanoRV_CRYPTO_X64
   if(native && (host_features()&(1u<<25)))return accelerated_subword(value);
 #else
   (void)native;
@@ -69,7 +69,7 @@ u32 subword(u32 value,bool native) {
 }
 }
 u64 aes_round(unsigned fn,u64 a,u64 b,bool native) noexcept {
-#if RVVM_CRYPTO_X64
+#if NanoRV_CRYPTO_X64
   if(native && (host_features()&(1u<<25)))return accelerated_aes(fn,a,b);
 #else
   (void)native;
@@ -86,7 +86,7 @@ u64 aes_round(unsigned fn,u64 a,u64 b,bool native) noexcept {
   return value;
 }
 u64 carryless(unsigned fn,u64 a,u64 b,bool native) noexcept {
-#if RVVM_CRYPTO_X64
+#if NanoRV_CRYPTO_X64
   if(native && (host_features()&2))return accelerated_carryless(fn,a,b);
 #else
   (void)native;

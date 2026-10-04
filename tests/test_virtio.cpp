@@ -6,12 +6,12 @@
 #include "test_framework.hpp"
 #include "test_helpers.hpp"
 #include <filesystem>
-using namespace rvvm;
-using namespace rvvm::test;
+using namespace nanorv;
+using namespace nanorv::test;
 namespace {
 struct DiskFixture : CpuFixture {
   std::filesystem::path path = std::filesystem::temp_directory_path() /
-      ("rvvm-disk-test-" + std::to_string(platform::monotonic_ns()) + ".raw");
+      ("nanorv-disk-test-" + std::to_string(platform::monotonic_ns()) + ".raw");
   std::unique_ptr<devices::VirtioBlock> device;
   static constexpr u64 desc = kDramBase + 0x1000, avail = kDramBase + 0x2000,
       used = kDramBase + 0x3000, header = kDramBase + 0x4000,

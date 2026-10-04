@@ -11,7 +11,7 @@
 #include <chrono>
 #include <cstring>
 #include <functional>
-using namespace rvvm;
+using namespace nanorv;
 namespace {
 struct Winsock {
   Winsock(){WSADATA data{};CHECK_EQ(WSAStartup(MAKEWORD(2,2),&data),0);}

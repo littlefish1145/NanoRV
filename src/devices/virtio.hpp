@@ -7,7 +7,7 @@
 #include <deque>
 #include <string>
 #include <vector>
-namespace rvvm::devices {
+namespace nanorv::devices {
 // VirtIO 1.x MMIO transport with split rings. DMA is restricted to guest RAM.
 class VirtioMmio : public memory::MemoryRegion {
 public:
@@ -84,4 +84,4 @@ private:
   platform::NatNetwork network_;
   std::deque<std::vector<u8>> packets_;
 };
-} // namespace rvvm::devices
+} // namespace nanorv::devices

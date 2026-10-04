@@ -2,7 +2,7 @@
 #include "machine/fdt.hpp"
 #include <initializer_list>
 #include <random>
-namespace rvvm::machine {
+namespace nanorv::machine {
 namespace {
 void word(std::vector<u8> &v, u32 n) {
   for (int i = 3; i >= 0; --i)
@@ -57,7 +57,7 @@ std::vector<u8> make_fdt(u64 ram_size, u64 start, u64 size,
   f.cells("#address-cells", {2});
   f.cells("#size-cells", {2});
   f.str("compatible", "riscv-virtio");
-  f.str("model", "RVVM virt");
+  f.str("model", "NanoRV virt");
   f.begin("chosen");
   f.str("stdout-path", "/soc/serial@10000000");
   f.str("bootargs", args);
@@ -181,4 +181,4 @@ std::vector<u8> make_fdt(u64 ram_size, u64 start, u64 size,
   out.insert(out.end(), f.strings.begin(), f.strings.end());
   return out;
 }
-} // namespace rvvm::machine
+} // namespace nanorv::machine

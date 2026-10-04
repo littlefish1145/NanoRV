@@ -18,7 +18,7 @@ __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance=1;
 struct iovec {void* iov_base;std::size_t iov_len;};
 struct virgl_box {std::uint32_t x,y,z,w,h,d;};
 #include <virglrenderer.h>
-namespace rvvm::platform {
+namespace nanorv::platform {
 struct Renderer::Impl {
   HMODULE library=nullptr;HWND window=nullptr;HDC dc=nullptr;HGLRC bootstrap=nullptr,shared=nullptr;
   using CreateContext=HGLRC(WINAPI*)(HDC,HGLRC,const int*);
@@ -69,9 +69,9 @@ bool Renderer::open(std::string& error,HostGpu gpu) {
   LOAD(resource_attach_iov);LOAD(resource_detach_iov);LOAD(context_create);LOAD(context_destroy);LOAD(ctx_attach_resource);
   LOAD(ctx_detach_resource);LOAD(submit_cmd);LOAD(transfer_read_iov);LOAD(transfer_write_iov);LOAD(force_ctx_0);LOAD(get_rect);LOAD(resource_get_info);
 #undef LOAD
-  WNDCLASSW wc{};wc.style=CS_OWNDC;wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"RVVM VirGL context";
+  WNDCLASSW wc{};wc.style=CS_OWNDC;wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"NanoRV VirGL context";
   if(!RegisterClassW(&wc) && GetLastError()!=ERROR_CLASS_ALREADY_EXISTS) {error="cannot register OpenGL window class";return false;}
-  s.window=CreateWindowW(wc.lpszClassName,L"RVVM renderer",WS_POPUP,0,0,1,1,nullptr,nullptr,wc.hInstance,nullptr);
+  s.window=CreateWindowW(wc.lpszClassName,L"NanoRV renderer",WS_POPUP,0,0,1,1,nullptr,nullptr,wc.hInstance,nullptr);
   if(!s.window || !(s.dc=GetDC(s.window))) {error="cannot create OpenGL surface";return false;}
   PIXELFORMATDESCRIPTOR pfd{};pfd.nSize=sizeof(pfd);pfd.nVersion=1;pfd.dwFlags=PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER;pfd.iPixelType=PFD_TYPE_RGBA;pfd.cColorBits=32;pfd.cDepthBits=24;
   const int format=ChoosePixelFormat(s.dc,&pfd);
@@ -84,7 +84,7 @@ bool Renderer::open(std::string& error,HostGpu gpu) {
   if((gpu==HostGpu::Nvidia && vendor.find("NVIDIA")==std::string::npos) ||
       (gpu==HostGpu::Intel && vendor.find("Intel")==std::string::npos) ||
       (gpu==HostGpu::Amd && vendor.find("ATI")==std::string::npos && vendor.find("AMD")==std::string::npos)) {
-    error="Windows selected OpenGL vendor "+vendor+"; select the requested GPU for rvvm.exe in Windows Graphics settings";return false;
+    error="Windows selected OpenGL vendor "+vendor+"; select the requested GPU for nanorv.exe in Windows Graphics settings";return false;
   }
   s.callbacks.version=1;s.callbacks.write_fence=Impl::fence;s.callbacks.create_gl_context=Impl::create;s.callbacks.destroy_gl_context=Impl::destroy;s.callbacks.make_current=Impl::current;
   const int result=s.init(&s,0,&s.callbacks);

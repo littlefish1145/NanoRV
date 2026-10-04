@@ -5,7 +5,7 @@
 #if defined(_M_X64) || defined(__x86_64__)
 #include <immintrin.h>
 #endif
-namespace rvvm::memory {
+namespace nanorv::memory {
 // Bounded RAM critical sections. Atomic CPU operations call the already-locked
 // write primitive, so ordinary stores need neither TLS ownership nor recursion.
 class SpinMutex {

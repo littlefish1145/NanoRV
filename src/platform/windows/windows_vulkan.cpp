@@ -11,7 +11,7 @@
 #include <cstring>
 #include <stdexcept>
 
-namespace rvvm::platform {
+namespace nanorv::platform {
 namespace {
 void checked(VkResult result,const char* operation) {
   if(result!=VK_SUCCESS)throw std::runtime_error(std::string(operation)+": VkResult "+std::to_string(result));
@@ -99,7 +99,7 @@ struct VulkanPresenter::Impl {
     instance_fn(CreateInstance,"vkCreateInstance");
     const char* extensions[]{VK_KHR_SURFACE_EXTENSION_NAME,VK_KHR_WIN32_SURFACE_EXTENSION_NAME};
     VkApplicationInfo application{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-    application.pApplicationName="RVVM";application.apiVersion=VK_API_VERSION_1_0;
+    application.pApplicationName="NanoRV";application.apiVersion=VK_API_VERSION_1_0;
     VkInstanceCreateInfo create{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};create.pApplicationInfo=&application;
     if(window) {create.enabledExtensionCount=2;create.ppEnabledExtensionNames=extensions;}
     checked(CreateInstance(&create,nullptr,&instance),"vkCreateInstance");

@@ -12,7 +12,7 @@
 #include <array>
 #include <deque>
 
-namespace rvvm::platform {
+namespace nanorv::platform {
 std::uint64_t profiling_ticks() noexcept {
 #if defined(_M_X64)
     _mm_lfence();const auto timestamp=__rdtsc();_mm_lfence();return timestamp;
@@ -458,4 +458,4 @@ std::string last_error() {
     return format_error(GetLastError());
 }
 
-} // namespace rvvm::platform
+} // namespace nanorv::platform

@@ -16,7 +16,7 @@
 #include "cpu/trap.hpp"
 #include "memory/address_space.hpp"
 
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 
 // Fetches and decodes the instruction at `pc`.
 // Returns false and fills `trap` on fetch fault / misaligned PC / long encoding.
@@ -26,4 +26,4 @@ bool fetch(Hart& hart, const memory::AddressSpace& memory, Decoded& out, Trap& t
 // Executes one already-decoded instruction.
 bool execute(Hart& hart, const memory::AddressSpace& memory, const Decoded& insn, Trap& trap) noexcept;
 
-} // namespace rvvm::cpu
+} // namespace nanorv::cpu

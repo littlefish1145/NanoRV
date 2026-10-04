@@ -11,7 +11,7 @@
 #include <deque>
 #include <atomic>
 #include <functional>
-namespace rvvm::cpu {
+namespace nanorv::cpu {
 class JitCompilerPool {
 public:
   explicit JitCompilerPool(u32 workers);

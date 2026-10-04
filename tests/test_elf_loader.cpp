@@ -6,8 +6,8 @@
 
 #include <cstring>
 
-using namespace rvvm;
-using namespace rvvm::core;
+using namespace nanorv;
+using namespace nanorv::core;
 
 namespace {
 
@@ -90,8 +90,8 @@ std::vector<std::uint8_t> program_payload(const std::vector<u32>& words) {
 } // namespace
 
 TEST(elf_loader, loads_a_valid_image_and_zeroes_bss) {
-    rvvm::test::CpuFixture fixture(1u << 20);
-    const u64 entry = rvvm::kDramBase + 0x400;
+    nanorv::test::CpuFixture fixture(1u << 20);
+    const u64 entry = nanorv::kDramBase + 0x400;
     const std::vector<u32> words = {0x00b50513u, 0x00100073u}; // addi a0, a0, 11; ebreak
     const auto payload = program_payload(words);
     const auto image = build_elf(243, 2, entry, entry, payload, payload.size() + 16);
@@ -113,25 +113,25 @@ TEST(elf_loader, loads_a_valid_image_and_zeroes_bss) {
 }
 
 TEST(elf_loader, honours_p_paddr_when_it_differs) {
-    rvvm::test::CpuFixture fixture(1u << 20);
-    auto image = build_elf(243, 2, rvvm::kDramBase, rvvm::kDramBase, program_payload({0x00000013u}), 4);
+    nanorv::test::CpuFixture fixture(1u << 20);
+    auto image = build_elf(243, 2, nanorv::kDramBase, nanorv::kDramBase, program_payload({0x00000013u}), 4);
     // p_paddr = 0x80001000 while p_vaddr = 0x80000000: stage 1 has no MMU, so the
     // physical address is what gets written, exactly like QEMU without a MMU.
-    put64(image, kEhdrSize + 24, rvvm::kDramBase + 0x1000);
+    put64(image, kEhdrSize + 24, nanorv::kDramBase + 0x1000);
 
     const LoadResult result = load_elf(fixture.space, image);
     CHECK(result.has_value());
     u64 value = 0;
-    CHECK(fixture.space.load(rvvm::kDramBase + 0x1000, 32, value));
+    CHECK(fixture.space.load(nanorv::kDramBase + 0x1000, 32, value));
     CHECK_EQ(value, std::uint64_t{0x00000013u});
-    CHECK(fixture.space.load(rvvm::kDramBase, 32, value));
+    CHECK(fixture.space.load(nanorv::kDramBase, 32, value));
     CHECK_EQ(value, std::uint64_t{0}); // nothing was written at p_vaddr
 }
 
 TEST(elf_loader, rejects_bad_headers) {
-    rvvm::test::CpuFixture fixture(1u << 20);
+    nanorv::test::CpuFixture fixture(1u << 20);
     const auto payload = program_payload({0x00000013u});
-    const auto good = build_elf(243, 2, rvvm::kDramBase, rvvm::kDramBase, payload, 4);
+    const auto good = build_elf(243, 2, nanorv::kDramBase, nanorv::kDramBase, payload, 4);
 
     auto truncated = good;
     truncated.resize(32);
@@ -171,57 +171,57 @@ TEST(elf_loader, rejects_bad_headers) {
 }
 
 TEST(elf_loader, rejects_segments_outside_ram) {
-    rvvm::test::CpuFixture fixture(1u << 20);
+    nanorv::test::CpuFixture fixture(1u << 20);
     const auto payload = program_payload({0x00000013u});
 
-    auto high_segment = build_elf(243, 2, rvvm::kDramBase + 0x200000, rvvm::kDramBase + 0x200000,
+    auto high_segment = build_elf(243, 2, nanorv::kDramBase + 0x200000, nanorv::kDramBase + 0x200000,
                                   payload, 4);
     const LoadResult result = load_elf(fixture.space, high_segment);
     CHECK(!result.has_value());
     CHECK(result.error().find("not backed by RAM") != std::string::npos);
 
-    auto bad_entry = build_elf(243, 2, 0x40000000, rvvm::kDramBase, payload, 4);
+    auto bad_entry = build_elf(243, 2, 0x40000000, nanorv::kDramBase, payload, 4);
     const LoadResult entry_result = load_elf(fixture.space, bad_entry);
     CHECK(!entry_result.has_value());
     CHECK(entry_result.error().find("entry point") != std::string::npos);
 }
 
 TEST(elf_loader, rejects_inconsistent_segments) {
-    rvvm::test::CpuFixture fixture(1u << 20);
+    nanorv::test::CpuFixture fixture(1u << 20);
     const auto payload = program_payload({0x00000013u});
-    auto image = build_elf(243, 2, rvvm::kDramBase, rvvm::kDramBase, payload, 4);
+    auto image = build_elf(243, 2, nanorv::kDramBase, nanorv::kDramBase, payload, 4);
 
     put64(image, kEhdrSize + 32, 0x100); // p_filesz > the real file size
     CHECK(!load_elf(fixture.space, image).has_value());
 
-    auto filesz_gt_memsz = build_elf(243, 2, rvvm::kDramBase, rvvm::kDramBase, payload, 4);
+    auto filesz_gt_memsz = build_elf(243, 2, nanorv::kDramBase, nanorv::kDramBase, payload, 4);
     put64(filesz_gt_memsz, kEhdrSize + 40, 2); // p_memsz < p_filesz
     CHECK(!load_elf(fixture.space, filesz_gt_memsz).has_value());
 }
 
 TEST(raw_loader, loads_flat_binaries) {
-    rvvm::test::CpuFixture fixture(1u << 20);
+    nanorv::test::CpuFixture fixture(1u << 20);
     const std::vector<std::uint8_t> image = {0x13, 0x00, 0x00, 0x00};
 
-    const LoadResult result = load_raw(fixture.space, image, rvvm::kDramBase, std::nullopt);
+    const LoadResult result = load_raw(fixture.space, image, nanorv::kDramBase, std::nullopt);
     CHECK(result.has_value());
-    CHECK_EQ(result->entry, rvvm::kDramBase);
-    CHECK_EQ(result->highest_address, rvvm::kDramBase + 4);
+    CHECK_EQ(result->entry, nanorv::kDramBase);
+    CHECK_EQ(result->highest_address, nanorv::kDramBase + 4);
 
     u64 value = 0;
-    CHECK(fixture.space.load(rvvm::kDramBase, 32, value));
+    CHECK(fixture.space.load(nanorv::kDramBase, 32, value));
     CHECK_EQ(value, std::uint64_t{0x13});
 
-    const LoadResult with_entry = load_raw(fixture.space, image, rvvm::kDramBase + 0x10, 0x80000100ull);
+    const LoadResult with_entry = load_raw(fixture.space, image, nanorv::kDramBase + 0x10, 0x80000100ull);
     CHECK(with_entry.has_value());
     CHECK_EQ(with_entry->entry, std::uint64_t{0x80000100});
 }
 
 TEST(raw_loader, rejects_bad_placements) {
-    rvvm::test::CpuFixture fixture(1u << 20);
+    nanorv::test::CpuFixture fixture(1u << 20);
     const std::vector<std::uint8_t> image = {0x13, 0x00, 0x00, 0x00};
 
-    CHECK(!load_raw(fixture.space, image, rvvm::kDramBase + (1u << 20) - 2, std::nullopt).has_value());
-    CHECK(!load_raw(fixture.space, {}, rvvm::kDramBase, std::nullopt).has_value());
-    CHECK(!load_raw(fixture.space, image, rvvm::kDramBase, 0x10).has_value());
+    CHECK(!load_raw(fixture.space, image, nanorv::kDramBase + (1u << 20) - 2, std::nullopt).has_value());
+    CHECK(!load_raw(fixture.space, {}, nanorv::kDramBase, std::nullopt).has_value());
+    CHECK(!load_raw(fixture.space, image, nanorv::kDramBase, 0x10).has_value());
 }

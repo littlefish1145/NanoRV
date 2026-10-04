@@ -6,7 +6,7 @@
 #include <cstring>
 #include <algorithm>
 #include <thread>
-using namespace rvvm;using namespace rvvm::test;
+using namespace nanorv;using namespace nanorv::test;
 #include <cstdlib>
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -67,7 +67,7 @@ TEST(graphics, absent_shared_memory_and_unadvertised_3d_are_rejected) {
   CHECK_EQ(c.submit(c.command(0x207,32)),0x1205u);
 }
 TEST(graphics, optional_host_virgl_resources_and_transfers) {
-  if(!std::getenv("RVVM_TEST_VIRGL"))return;
+  if(!std::getenv("NanoRV_TEST_VIRGL"))return;
   platform::Renderer renderer;std::string error;CHECK(renderer.open(error));
   std::printf("VirGL host: %s\n",renderer.description().c_str());
   std::printf("Host renderer: %s\n",renderer.description().c_str());
@@ -78,11 +78,11 @@ TEST(graphics, optional_host_virgl_resources_and_transfers) {
   CHECK_EQ(renderer.transfer(1,0,{0,0,0,2,2,1},0,0,0,0,false),0);
   std::vector<u32> pixels;CHECK(renderer.pixels(1,2,2,pixels));
   CHECK_EQ(pixels.size(),4u);for(unsigned n=0;n<4;++n)CHECK_EQ(pixels[n]&0xffffffu,source[n]&0xffffffu);
-  CHECK_EQ(renderer.context(5,"RVVM host integration"),0);renderer.context_resource(5,1,true);renderer.context_resource(5,1,false);renderer.destroy_context(5);
+  CHECK_EQ(renderer.context(5,"NanoRV host integration"),0);renderer.context_resource(5,1,true);renderer.context_resource(5,1,false);renderer.destroy_context(5);
   renderer.unref(1);renderer.reset();
 }
 TEST(graphics, optional_parallel_virgl_stream_transfers_sync_changed_guest_pixels) {
-  if(!std::getenv("RVVM_TEST_VIRGL"))return;
+  if(!std::getenv("NanoRV_TEST_VIRGL"))return;
   GpuFixture c;c.space.set_concurrent(true);std::string error;CHECK(c.gpu.open_renderer(error));
   c.resource();auto b=c.command(0x106,48);put(b,28,1);put(b,32,static_cast<u32>(kDramBase+0x5000));put(b,40,16);CHECK_EQ(c.submit(b),0x1100u);
   b=c.command(0x200,96,0);put(b,16,5);CHECK_EQ(c.submit(b),0x1100u);
@@ -133,7 +133,7 @@ TEST(graphics, display_snapshots_remain_coherent_during_concurrent_present_and_s
   }
 }
 TEST(graphics, optional_host_vulkan_upload_readback_and_vendor_selection) {
-  if(!std::getenv("RVVM_TEST_VULKAN"))return;
+  if(!std::getenv("NanoRV_TEST_VULKAN"))return;
   std::vector<platform::VulkanDevice> devices;std::string error,name;
   CHECK(platform::VulkanPresenter::enumerate(devices,error));CHECK(!devices.empty());
   CHECK(platform::VulkanPresenter::self_test(platform::HostGpu::Auto,name,error));
@@ -145,9 +145,9 @@ TEST(graphics, optional_host_vulkan_upload_readback_and_vendor_selection) {
   }
 }
 TEST(graphics, optional_host_vulkan_swapchain_resize_minimize_and_cleanup) {
-  if(!std::getenv("RVVM_TEST_VULKAN"))return;
+  if(!std::getenv("NanoRV_TEST_VULKAN"))return;
   struct Window {
-    HWND handle=CreateWindowExW(0,L"STATIC",L"RVVM Vulkan test",WS_OVERLAPPEDWINDOW,40,40,257,193,nullptr,nullptr,GetModuleHandleW(nullptr),nullptr);
+    HWND handle=CreateWindowExW(0,L"STATIC",L"NanoRV Vulkan test",WS_OVERLAPPEDWINDOW,40,40,257,193,nullptr,nullptr,GetModuleHandleW(nullptr),nullptr);
     ~Window() {if(handle)DestroyWindow(handle);}
   } window;
   CHECK(window.handle);ShowWindow(window.handle,SW_SHOWNOACTIVATE);
